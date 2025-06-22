@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Lenda do Prato Equilibrado</title>
+    <link rel="stylesheet" href="CSS/Style.css"> <style>
+        /* CSS mínimo para garantir que o sistema de telas funcione */
+        .hidden { display: none !important; }
+        body { font-family: sans-serif; }
+    </style>
+</head>
+<body>
+
+    <div id="main-menu">
+        <h1>A Lenda do Prato Equilibrado</h1>
+        <button id="play-button">Jogar</button>
+        <button id="encyclopedia-button">Enciclopédia de Itens</button>
+    </div>
+
+    <div id="main-container" class="hidden">
+        <div id="game-area">
+            <div id="player" class="entity"></div>
+        </div>
+        <div id="ui-column">
+             <div id="status-board">
+                <div>Sala: <span id="current-room">0</span></div>
+                <div>Vida: <span id="player-health">100</span></div>
+                <div>Escudo: <span id="player-shield">0</span></div>
+                <div>Ataque: <span id="player-attack">10</span></div>
+                <div>Moedas: <span id="player-coins">30</span></div>
+            </div>
+            <div id="inventory-display">
+                <h3>Inventário:</h3>
+                <div id="inventory-list"></div>
+            </div>
+        </div>
+        <div id="room-message" style="display: none;"></div>
+    </div>
+
+    <div id="encyclopedia-screen" class="hidden">
+        <h2>Enciclopédia de Alimentos</h2>
+        <div id="encyclopedia-items"></div>
+        <button id="back-to-menu-button">Voltar ao Menu</button>
+    </div>
+
+    <div id="shop-overlay" class="hidden">
+        <div id="shop-modal">
+            <h2>Mercado</h2>
+            <div id="shop-items"></div>
+            <p id="item-description">Passe o mouse sobre um item para ver a descrição.</p>
+            <button id="reroll-button">Rerolar (1)</button>
+            <button id="proceed-button">Ir para a próxima sala</button>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+
+</body>
+</html>

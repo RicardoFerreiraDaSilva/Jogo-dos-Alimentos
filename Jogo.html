@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Lenda do Prato Equilibrado (Versão Estável)</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .hidden { display: none !important; }
+        #main-container { display: flex; gap: 20px; align-items: flex-start; }
+        #game-container { position: relative; }
+        #game-area { width: 800px; height: 600px; border: 2px solid #fff; background-color: #2c3e50; position: relative; overflow: hidden; }
+        .entity { position: absolute; }
+        #player { width: 30px; height: 30px; background-color: #3498db; z-index: 10; }
+        #ui-column { display: flex; flex-direction: column; align-items: center; }
+        #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+        #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+        #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+        .inventory-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.95); }
+        #main-menu h1 { font-size: 64px; color: #f1c40f; text-shadow: 3px 3px 8px #000; margin-bottom: 40px; }
+        #main-menu .menu-button { font-size: 28px; padding: 18px 35px; margin: 12px; width: 350px; cursor: pointer; border: 2px solid #fff; background-color: #3498db; color: white; border-radius: 5px; transition: all 0.2s; }
+        #main-menu .menu-button:hover { background-color: #4aa8e9; transform: scale(1.05); }
+        #encyclopedia-screen h2 { font-size: 36px; }
+        #encyclopedia-items { width: 80%; height: 70%; background-color: #1c2833; overflow-y: auto; border: 2px solid #ddd; padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .encyclopedia-card { background-color: #444; padding: 10px; border-radius: 5px; border-left: 5px solid transparent; }
+        .encyclopedia-card.rare { border-left-color: #8e44ad; } .encyclopedia-card.legendary { border-left-color: #e74c3c; }
+        .encyclopedia-card-header { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: bold; }
+        .encyclopedia-card-title { display: flex; align-items: center; gap: 10px; }
+        .encyclopedia-card-symbol { font-size: 28px; }
+        .encyclopedia-card-cost { font-size: 16px; color: #f1c40f; }
+        .encyclopedia-card-desc { font-size: 14px; margin-top: 5px; color: #ccc; }
+        #encyclopedia-screen .back-button { margin-top: 20px; font-size: 20px; padding: 10px 20px; cursor: pointer; }
+        #shop-controls { display: flex; gap: 15px; margin-top: 20px;}
+        #shop-title { font-size: 36px; margin-bottom: 20px; }
+        #shop-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 650px; }
+        .shop-item { width: 140px; height: 140px; padding: 5px; box-sizing: border-box; border: 2px solid #ddd; background-color: #444; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .shop-item.rare { border-color: #8e44ad; } .shop-item.legendary { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; }
+        .shop-item:hover { background-color: #555; transform: scale(1.05); } .shop-item.disabled { background-color: #222; color: #555; cursor: not-allowed; }
+        .shop-item-symbol { font-size: 40px; } .shop-item-name { font-size: 16px; font-weight: bold; }
+        #item-description { margin-top: 20px; height: 50px; font-size: 18px; text-align: center; width: 600px;}
+        #proceed-button, #reroll-button { padding: 10px 20px; font-size: 20px; cursor: pointer; }
+        #reroll-button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
+        .item{width:25px;height:25px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:16px;font-weight:700;color:#fff;text-shadow:1px 1px 2px #000}.enemy{width:35px;height:35px;background-color:#8e44ad;transition:all .1s}.projectile,.pasta-projectile,.orange-projectile,.friend-projectile,.laser-beam{width:15px;height:5px;background-color:#f1c40f}.pasta-projectile{background-color:#e6e6e6}.orange-projectile{background-color:#e67e22;border-radius:5px}.friend-projectile{background-color:#d35400;border-radius:2px}.laser-beam{background-color:#ff00ff;box-shadow:0 0 10px #ff00ff;height:3px}.coin{width:15px;height:15px;background-color:#f1c40f;border-radius:50%}.watermelon-orb{width:40px;height:40px;background-color:#27ae60;border:2px solid #2ecc71;border-radius:50%;opacity:.7;z-index:9}.companion{border:2px outset #ccc;box-sizing:border-box;z-index:8}
+        .chocolate-friend{width:28px;height:28px;background-color:#7b241c}.dragon-friend{width:32px;height:32px;background-color:#c0392b;border-radius:50%}.ice-cream-friend{width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:30px solid #ff79c6;background-color:transparent!important}.yogurt-friend{width:28px;height:28px;background-color:#fdfefe;border-radius:40%}.cheese-friend{width:30px;height:30px;background-color:#f1c40f;clip-path:polygon(0 25%,50% 0,100% 25%,100% 100%,0 100%)}.banana{background-color:#ffda63}.leite{background-color:#fff;color:#000}.cenoura{background-color:#e67e22}.couve{background-color:#27ae60}.ovo{background-color:#f7f1e3;border:1px solid #aaa;color:#333}
+        #room-message{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:700;color:#fff;text-shadow:2px 2px 4px #000;z-index:100}
+    </style>
+</head>
+<body>
+    <div id="main-container" class="hidden">
+        <div id="game-container">
+            <div id="game-area"><div id="player" class="entity"></div></div>
+            <div id="room-message" class="hidden"></div>
+        </div>
+        <div id="ui-column">
+            <div id="status-board">
+                <div>Sala: <span id="current-room">0</span></div>
+                <div>Vida: <span id="player-health">10</span></div>
+                <div>Escudo: <span id="player-shield">0</span></div>
+                <div>Ataque: <span id="player-attack">1</span></div>
+                <div>Moedas: <span id="player-coins">30</span></div>
+            </div>
+            <div id="inventory-display"><h3 id="inventory-title">Itens Comprados</h3><div id="inventory-list"></div></div>
+        </div>
+    </div>
+    <div id="main-menu" class="screen">
+        <h1>A Lenda do Prato Equilibrado</h1>
+        <button id="play-button" class="menu-button">Jogar</button>
+        <button id="encyclopedia-button" class="menu-button">Enciclopédia de Itens</button>
+    </div>
+    <div id="encyclopedia-screen" class="screen hidden">
+        <h2>Enciclopédia de Alimentos</h2>
+        <div id="encyclopedia-items"></div>
+        <button id="back-to-menu-button" class="back-button">Voltar ao Menu</button>
+    </div>
+    <div id="shop-overlay" class="screen hidden">
+        <h2 id="shop-title">Mercado</h2>
+        <div id="shop-items"></div>
+        <p id="item-description">Passe o mouse sobre um item para ver a descrição.</p>
+        <div id="shop-controls"><button id="reroll-button">Rerolar (0)</button><button id="proceed-button">Ir para a próxima sala</button></div>
+    </div>
+
+    <script>
+        let gameState = 'MAIN_MENU', currentRoom = 0, lastTime = 0, roomClearTimer = 0;
+        const refs = { mainContainer: document.getElementById('main-container'), gameArea: document.getElementById('game-area'), player: document.getElementById('player'), roomMessage: document.getElementById('room-message'), shop: { overlay: document.getElementById('shop-overlay'), itemsContainer: document.getElementById('shop-items'), description: document.getElementById('item-description'), proceedButton: document.getElementById('proceed-button'), rerollButton: document.getElementById('reroll-button') }, ui: { room: document.getElementById('current-room'), health: document.getElementById('player-health'), shield: document.getElementById('player-shield'), attack: document.getElementById('player-attack'), coins: document.getElementById('player-coins'), inventory: document.getElementById('inventory-list') }, menu: { main: document.getElementById('main-menu'), playBtn: document.getElementById('play-button'), encyclopediaBtn: document.getElementById('encyclopedia-button') }, encyclopedia: { screen: document.getElementById('encyclopedia-screen'), container: document.getElementById('encyclopedia-items'), backBtn: document.getElementById('back-to-menu-button') }};
+        let playerState={x:385,y:285,speed:4,baseHealth:10,bonusHealth:0,get health(){return this.baseHealth+this.bonusHealth},set health(v){this.baseHealth=v-this.bonusHealth},baseAttack:1,bonusAttack:0,get attack(){return this.baseAttack+this.bonusAttack},set attack(v){this.baseAttack=v-this.bonusAttack},shield:0,coins:30,isInvincible:false,invincibilityTimer:0,lastMoveDirection:{x:1,y:0},inventory:new Map(),shopRerolls:0,milkUpgrade:false,bananaUpgrade:false,hasPoisonUpgrade:false,poisonDPS:1,hasGrapesUpgrade:false,canSpawnEggs:false,aimInMoveDirection:false,hasDoubleShot:false,hasPastaShot:false,pastaFireRate:1,pastaFireTimer:1,pastaSlowFactor:0,watermelonOrb:{damage:0,angle:0,radius:60},extraShopSlots:0,orangeUpgrade:0,orangeFireTimer:5,orangeJuiceUpgrade:false,hasHomingShots:false,companionBuffs:{bonusDamage:0,bonusHealth:0},butterStacks:0,hasGrapeJuice:false,greenGrapesStacks:0,hasGrapePie:false,hasGrapeCuca:false,hasWhiteGrape:false};
+        let activeCompanions=[];
+        const keys={ArrowUp:false,ArrowDown:false,ArrowLeft:false,ArrowRight:false};
+        const foodTypes=[{name:'banana',effect:()=>{playerState.health+=playerState.bananaUpgrade?3:1}},{name:'leite',effect:()=>{playerState.health+=playerState.milkUpgrade?2:1}},{name:'cenoura',effect:()=>{playerState.baseAttack+=1}},{name:'couve',effect:()=>{playerState.shield+=5}}];
+        const specialFood=[{name:'ovo',effect:()=>{playerState.health+=1;playerState.baseAttack+=1}}];
+        let masterShopList=[{id:'tomate',name:'Tomate',symbol:'🍅',desc:'Dobra seu ataque base permanentemente.',cost:30,onPurchase:()=>{playerState.baseAttack*=2},stackable:false},{id:'alface',name:'Alface',symbol:'🥬',desc:'Concede 30 de escudo.',cost:30,onPurchase:()=>{playerState.shield+=30},stackable:true},{id:'caixaDeLeite',name:'Caixa de Leite',symbol:'L🥛',desc:'Leite agora cura o dobro (passivo).',cost:30,onPurchase:()=>{playerState.milkUpgrade=true},stackable:false},{id:'laranja',name:'Laranja',symbol:'🍊',desc:'Dispara 5 projéteis a cada 5s (+2 de dano por compra).',cost:35,onPurchase:()=>{playerState.orangeUpgrade+=1},stackable:true},{id:'sucoDeLaranja',name:'Suco de Laranja',symbol:'🧃🍊',desc:'(RARO) Dobra o dano dos projéteis do item Laranja.',cost:50,onPurchase:()=>{playerState.orangeJuiceUpgrade=true},stackable:false,rarity:'rare'},{id:'maca',name:'Maçã',symbol:'🍎',desc:'Tiros têm 50% de chance de aplicar veneno.',cost:30,onPurchase:()=>{playerState.hasPoisonUpgrade=true},stackable:false},{id:'sucoDeMaca',name:'Suco de Maçã',symbol:'🥤🍎',desc:'(RARO) Veneno da Maçã causa +30 de dano por segundo.',cost:50,onPurchase:()=>{playerState.poisonDPS+=30},stackable:false,rarity:'rare'},{id:'uvas',name:'Uvas',symbol:'🍇',desc:'Moedas coletadas valem o dobro.',cost:30,onPurchase:()=>{playerState.hasGrapesUpgrade=true},stackable:false},{id:'melancia',name:'Melancia',symbol:'🍉',desc:'Cria uma orbe de dano ao seu redor (+10 de dano por compra).',cost:40,onPurchase:()=>{playerState.watermelonOrb.damage+=10;if(!document.getElementById('watermelon-orb'))createEntity('watermelon-orb','watermelon-orb')},stackable:true},{id:'frango',name:'Frango',symbol:'🍗',desc:'Permite que Ovos apareçam nas fases (+1 Vida, +1 Dano).',cost:30,onPurchase:()=>{playerState.canSpawnEggs=true},stackable:false},{id:'bife',name:'Bife',symbol:'🥩',desc:'Seus tiros agora vão na direção em que você se move.',cost:30,onPurchase:()=>{playerState.aimInMoveDirection=true},stackable:false},{id:'coelho',name:'Coelho',symbol:'🐇',desc:'Atira um projétil adicional (tiro duplo).',cost:40,onPurchase:()=>{playerState.hasDoubleShot=true},stackable:false},{id:'ovelha',name:'Ovelha',symbol:'🐑',desc:'Dobra o valor do seu escudo atual.',cost:25,onPurchase:()=>{if(playerState.shield>0)playerState.shield*=2},stackable:true},{id:'macarrao',name:'Macarrão',symbol:'🍝',desc:'Ganha um tiro automático que causa lentidão (+10% por compra).',cost:35,onPurchase:()=>{playerState.hasPastaShot=true;playerState.pastaSlowFactor+=0.1},stackable:true},{id:'pepino',name:'Pepino',symbol:'🥒',desc:'Adiciona +1 opção de item no próximo mercado (máx. 9).',cost:20,onPurchase:()=>{if(playerState.extraShopSlots<6)playerState.extraShopSlots++},stackable:true},{id:'batidaDeBanana',name:'Batida de Banana',symbol:'🍌',desc:'Bananas agora curam 3 de vida.',cost:25,onPurchase:()=>{playerState.bananaUpgrade=true},stackable:false},{id:'bolo',name:'Bolo',symbol:'🎂',desc:'(RARO) Seu tiro principal se torna teleguiado.',cost:60,onPurchase:()=>{playerState.hasHomingShots=true},stackable:false,rarity:'rare'},
+        {id:'chocolate',name:'Chocolate',symbol:'🍫',desc:'(RARO) Conjura um amigo chocolate que luta ao seu lado.',cost:70,onPurchase:()=>{createCompanion('chocolate')},stackable:false,rarity:'rare'},
+        {id:'pytaya',name:'Pytaya',symbol:'🐉',desc:'(RARO) Conjura um amigo dragão que dispara bolas de fogo.',cost:80,onPurchase:()=>{createCompanion('dragon')},stackable:false,rarity:'rare'},
+        {id:'sorvete',name:'Sorvete',symbol:'🍦',desc:'Conjura um amigo sorvete que dispara lasers.',cost:45,onPurchase:()=>{createCompanion('ice_cream')},stackable:false},
+        {id:'iogurte',name:'Iogurte',symbol:'🍶',desc:'Conjura um amigo iogurte que te cura por segundo.',cost:50,onPurchase:()=>{createCompanion('yogurt')},stackable:false},
+        {id:'queijo',name:'Queijo',symbol:'🧀',desc:'Conjura um amigo queijo que coleta itens para você.',cost:40,onPurchase:()=>{createCompanion('cheese')},stackable:false},
+        {id:'doceDeLeite',name:'Doce de Leite',symbol:'🍮',desc:'Seus companheiros ganham +20 Vida e +10 Dano.',cost:30,onPurchase:()=>{playerState.companionBuffs.bonusHealth+=20;playerState.companionBuffs.bonusDamage+=10;activeCompanions.forEach(c=>{c.health+=20;c.damage+=10;});},stackable:true},
+        {id:'cremeDeLeite',name:'Creme de Leite',symbol:'🥛',desc:'+4 de cura por segundo para o Amigo Iogurte.',cost:25,onPurchase:()=>{const y=activeCompanions.find(c=>c.type==='yogurt');if(y)y.healRate+=4;},stackable:true},
+        {id:'brocolis',name:'Brócolis',symbol:'🥦',desc:'Ganha +1 chance de rerolar os itens da loja.',cost:15,onPurchase:()=>{playerState.shopRerolls++;},stackable:true},
+        {id:'manteiga',name:'Manteiga',symbol:'🧈',desc:'Cria uma aura que empurra inimigos próximos (+alcance por compra).',cost:20,onPurchase:()=>{playerState.butterStacks=(playerState.butterStacks||0)+1;},stackable:true,maxStacks:10},
+        {id:'sucoDeUva',name:'Suco de Uva',symbol:'🧃🍇',desc:'(RARO) Ganha +10 Vida e +10 Ataque para cada 50 moedas.',cost:60,onPurchase:()=>{playerState.hasGrapeJuice=true;},stackable:false,rarity:'rare'},{id:'uvasVerdes',name:'Uvas Verdes',symbol:'🟢',desc:'Coleta 10% das moedas não pegas no fim da sala (acumulável).',cost:20,onPurchase:()=>{if(playerState.greenGrapesStacks<20)playerState.greenGrapesStacks++},stackable:true},{id:'tortaDeUva',name:'Torta de Uva',symbol:'🥧',desc:'Seu escudo se torna igual à sua quantidade de moedas.',cost:40,onPurchase:()=>{playerState.hasGrapePie=true},stackable:false},{id:'cucaDeUva',name:'Cuca de Uva',symbol:'🍰',desc:'(RARO) Ao tomar dano, perde moedas em vez de vida/escudo.',cost:50,onPurchase:()=>{playerState.hasGrapeCuca=true},stackable:false,rarity:'rare'},{id:'uvaBranca',name:'Uva Branca',symbol:'⚪',desc:'(LENDÁRIO) Suas unidades conjuradas ganham 200% de velocidade de ataque.',cost:100,onPurchase:()=>{playerState.hasWhiteGrape=true;activeCompanions.forEach(c=>c.attackSpeedFactor=3);},stackable:false,rarity:'legendary'}
+        ];
+        masterShopList.forEach(item => item.purchased = false);
+        let activeFood = [], activeProjectiles = [], activeEnemies = [], activeCoins = [], activePastaProjectiles = [], activeOrangeProjectiles = [], activeFriendProjectiles = [];
+        
+        refs.menu.playBtn.addEventListener('click', () => { refs.menu.main.classList.add('hidden'); refs.mainContainer.classList.remove('hidden'); gameState = 'SHOP'; });
+        refs.menu.encyclopediaBtn.addEventListener('click', () => { refs.menu.main.classList.add('hidden'); populateEncyclopedia(); refs.encyclopedia.screen.classList.remove('hidden'); });
+        refs.encyclopedia.backBtn.addEventListener('click', () => { refs.encyclopedia.screen.classList.add('hidden'); refs.menu.main.classList.remove('hidden'); });
+        refs.shop.rerollButton.addEventListener('click', () => { if (playerState.shopRerolls > 0 && gameState === 'PAUSED') { playerState.shopRerolls--; openShop(); } });
+        refs.shop.proceedButton.addEventListener('click', () => { refs.shop.overlay.classList.add('hidden'); currentRoom++; gameState = 'STARTING_ROOM'; });
+
+        function populateEncyclopedia() { const c = refs.encyclopedia.container; c.innerHTML = ''; masterShopList.sort((a, b) => a.name.localeCompare(b.name)).forEach(i => { const d = document.createElement('div'); d.className = `encyclopedia-card ${i.rarity || ''}`; d.innerHTML = `<div class="encyclopedia-card-header"><div class="encyclopedia-card-title"><span class="encyclopedia-card-symbol">${i.symbol}</span><span>${i.name}</span></div><span class="encyclopedia-card-cost">${i.cost} M</span></div><p class="encyclopedia-card-desc">${i.desc}</p>`; c.appendChild(d); }); }
+        function createEntity(className, id = null) { const div = document.createElement('div'); div.className = `entity ${className}`; if (id) div.id = id; refs.gameArea.appendChild(div); return div; }
+        function createCompanion(type) { if (activeCompanions.find(c => c.type === type)) return; const companion = { div: createEntity(`companion ${type}-friend`), type: type, x: playerState.x, y: playerState.y - 50, attackSpeedFactor: playerState.hasWhiteGrape ? 3 : 1 }; switch (type) { case 'chocolate': companion.health = Math.ceil(playerState.health / 2) + playerState.companionBuffs.bonusHealth; companion.damage = Math.ceil(playerState.attack / 2) + playerState.companionBuffs.bonusDamage; companion.fireTimer = 2; break; case 'dragon': companion.health = 100 + playerState.companionBuffs.bonusHealth; companion.damage = 100 + playerState.companionBuffs.bonusDamage; companion.fireTimer = 1; break; case 'ice_cream': companion.damage = 10 + playerState.companionBuffs.bonusDamage; companion.fireTimer = 1.5; break; case 'yogurt': companion.health = 60 + playerState.companionBuffs.bonusHealth; companion.healRate = 4; break; case 'cheese': companion.immortal = true; break; } activeCompanions.push(companion); }
+        function createFood() { let f = [...foodTypes]; if (playerState.canSpawnEggs) f.push(...specialFood); const d = f[Math.floor(Math.random() * f.length)]; const e = { div: createEntity(`item ${d.name}`), effect: () => { d.effect(); updateStatusBoard(); }, name: d.name }; e.div.textContent = d.name.charAt(0).toUpperCase(); e.div.style.left = Math.random() * 775 + 'px'; e.div.style.top = Math.random() * 575 + 'px'; activeFood.push(e); }
+        function createEnemy(health) { const e = { div: createEntity('enemy'), x: Math.random() * 765, y: Math.random() * 565, speed: 1 + (currentRoom * 0.1), health: health, dx: (Math.random() - 0.5) * 2, dy: (Math.random() - 0.5) * 2, slowFactor: 1, isPoisoned: false, poisonTimer: 0 }; activeEnemies.push(e); }
+        function createProjectile(dir, offsetY = 0) { const offsetX = dir.y * offsetY; const p = { div: createEntity('projectile'), x: playerState.x + 15 + offsetX, y: playerState.y + 12.5 - offsetX, speed: 8, dx: dir.x, dy: dir.y, homingTarget: null }; p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; activeProjectiles.push(p); }
+        function createPastaProjectile() { if (activeEnemies.length === 0) return; const t = findNearestEnemy(playerState); if (!t) return; const d = { x: t.x - playerState.x, y: t.y - playerState.y }; const m = Math.sqrt(d.x ** 2 + d.y ** 2) || 1; const p = { div: createEntity('pasta-projectile'), x: playerState.x + 15, y: playerState.y + 12.5, speed: 5, dx: d.x / m, dy: d.y / m }; p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; activePastaProjectiles.push(p); }
+        function createOrangeShot() { const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }, { x: 0.7, y: 0.7 }]; const dmg = (2 * playerState.orangeUpgrade) * (playerState.orangeJuiceUpgrade ? 2 : 1); dirs.forEach(d => { const p = { div: createEntity('orange-projectile'), x: playerState.x + 15, y: playerState.y + 15, speed: 4, dx: d.x, dy: d.y, damage: dmg }; p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; activeOrangeProjectiles.push(p); }); }
+        function createFriendProjectile(source, dir, type) { const p = { div: createEntity(type), x: source.x + 14, y: source.y + 14, speed: 6, dx: dir.x, dy: dir.y, damage: source.damage }; p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; activeFriendProjectiles.push(p); }
+        function createCoin(x, y) { const c = { div: createEntity('coin') }; c.div.style.left = x + 'px'; c.div.style.top = y + 'px'; activeCoins.push(c); }
+        function updateStatusBoard() { updateDynamicStats(); refs.ui.room.textContent = currentRoom; refs.ui.health.textContent = playerState.health.toFixed(0); refs.ui.shield.textContent = playerState.shield.toFixed(0); refs.ui.attack.textContent = playerState.attack.toFixed(0); refs.ui.coins.textContent = playerState.coins; }
+        function checkCollision(d1, d2) { if (!d1 || !d2) return false; const r1 = d1.getBoundingClientRect(), r2 = d2.getBoundingClientRect(); return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom); }
+        function showRoomMessage(text, duration) { refs.roomMessage.textContent = text; refs.roomMessage.style.display = 'block'; if (duration) setTimeout(() => { refs.roomMessage.style.display = 'none'; }, duration); }
+        function updateInventoryDisplay() { refs.ui.inventory.innerHTML = ''; playerState.inventory.forEach((count, name) => { const itemEl = document.createElement('div'); itemEl.className = 'inventory-item'; itemEl.textContent = `${name} ${count > 1 ? `x${count}` : ''}`; refs.ui.inventory.appendChild(itemEl); }); }
+        function findNearestEnemy(source) { let nearest = null, minDist = Infinity; activeEnemies.forEach(e => { const dist = Math.sqrt((e.x - source.x) ** 2 + (e.y - source.y) ** 2); if (dist < minDist) { minDist = dist; nearest = e; } }); return nearest; }
+        function findNearestCollectible(source) { let allCollectibles = [...activeFood, ...activeCoins]; let nearest = null, minDist = Infinity; allCollectibles.forEach(c => { const cRect = c.div.getBoundingClientRect(); const dist = Math.sqrt((cRect.left - source.x) ** 2 + (cRect.top - source.y) ** 2); if (dist < minDist) { minDist = dist; nearest = c; } }); return nearest; }
+        function updateDynamicStats() { playerState.bonusHealth = 0; playerState.bonusAttack = 0; if (playerState.hasGrapeJuice) { const bonus = Math.floor(playerState.coins / 50); playerState.bonusHealth = bonus * 10; playerState.bonusAttack = bonus * 10; } if (playerState.hasGrapePie) playerState.shield = playerState.coins; }
+        function applyShopItemEffect(itemId) { const itemData = masterShopList.find(i => i.id === itemId); if (itemData && itemData.onPurchase) { itemData.onPurchase(); } }
+        function openShop() { gameState = 'PAUSED'; updateStatusBoard(); refs.shop.overlay.classList.remove('hidden'); refs.shop.itemsContainer.innerHTML = ''; const pool = masterShopList.filter(i => !playerState.inventory.has(i.name) || i.stackable); const common = pool.filter(i => !i.rarity); const rare = pool.filter(i => i.rarity === 'rare'); const legendary = pool.filter(i => i.rarity === 'legendary'); let itemsToShow = common.sort(() => 0.5 - Math.random()).slice(0, 3 + playerState.extraShopSlots); if (rare.length > 0 && Math.random() < 0.4) itemsToShow.push(rare.sort(() => 0.5 - Math.random())[0]); if (legendary.length > 0 && Math.random() < 0.15) itemsToShow.push(legendary.sort(() => 0.5 - Math.random())[0]); itemsToShow = itemsToShow.slice(0, 9); itemsToShow.forEach(itemData => { const itemDiv = document.createElement('div'); itemDiv.className = `shop-item ${itemData.rarity || ''}`; itemDiv.innerHTML = `<div class="shop-item-symbol">${itemData.symbol}</div><div class="shop-item-name">${itemData.name}</div>`; if (playerState.coins < itemData.cost) itemDiv.classList.add('disabled'); itemDiv.addEventListener('mouseover', () => { refs.shop.description.textContent = `${itemData.desc} (Custo: ${itemData.cost} moedas)`; }); itemDiv.addEventListener('click', () => { if (playerState.coins >= itemData.cost && (!playerState.inventory.has(itemData.name) || itemData.stackable)) { playerState.coins -= itemData.cost; applyShopItemEffect(itemData.id); const c = playerState.inventory.get(itemData.name) || 0; playerState.inventory.set(itemData.name, c + 1); updateStatusBoard(); updateInventoryDisplay(); openShop(); } }); refs.shop.itemsContainer.appendChild(itemDiv); }); refs.shop.description.textContent = 'Passe o mouse sobre um item para ver a descrição.'; refs.shop.rerollButton.textContent = `Rerolar (${playerState.shopRerolls})`; refs.shop.rerollButton.disabled = playerState.shopRerolls <= 0; }
+        function handlePlayerDamage(amount) { if (playerState.isInvincible) return; if (playerState.hasGrapeCuca && playerState.coins > 0) { const d = Math.min(playerState.coins, amount); playerState.coins -= d; amount -= d; updateStatusBoard(); } if (amount <= 0) return; let s = Math.min(playerState.shield, amount); playerState.shield -= s; amount -= s; if (amount > 0) playerState.baseHealth -= amount; playerState.isInvincible = true; playerState.invincibilityTimer = 1.5; updateStatusBoard(); }
+        function startNewRoom() { showRoomMessage(`Sala ${currentRoom}`, 1500); updateStatusBoard(); [...activeFood, ...activeCoins, ...activeEnemies, ...activePastaProjectiles, ...activeOrangeProjectiles, ...activeFriendProjectiles, ...activeCompanions.map(c => c.div)].forEach(i => i && i.remove()); activeFood = []; activeCoins = []; activeEnemies = []; activePastaProjectiles = []; activeOrangeProjectiles = []; activeFriendProjectiles = []; activeCompanions.forEach(c => { if (c.type === 'cheese') c.target = null; }); const nE = 2 + currentRoom; const eH = 3 + currentRoom; for (let i = 0; i < nE; i++) createEnemy(eH); const nF = 1 + Math.floor(Math.random() * 3); for (let i = 0; i < nF; i++) createFood(); gameState = 'PLAYING'; }
+        function updateCompanions(deltaTime) { activeCompanions.forEach((c, index) => { const formationOffset = (index - (activeCompanions.length - 1) / 2) * 50; c.x += (playerState.x + formationOffset - c.x) * 0.05; c.y += (playerState.y - 60 - c.y) * 0.05; if (c.div) { c.div.style.left = c.x + 'px'; c.div.style.top = c.y + 'px'; } switch (c.type) { case 'yogurt': if (c.healRate) playerState.baseHealth += c.healRate * deltaTime; break; case 'cheese': if (!c.target || !c.target.div.parentNode) c.target = findNearestCollectible(c); if (c.target) { const dir = { x: c.target.div.offsetLeft - c.x, y: c.target.div.offsetTop - c.y }; const mag = Math.sqrt(dir.x ** 2 + dir.y ** 2) || 1; c.x += dir.x / mag * 3; c.y += dir.y / mag * 3; } break; case 'chocolate': case 'dragon': case 'ice_cream': c.fireTimer -= deltaTime; if (c.fireTimer <= 0 && activeEnemies.length > 0) { const target = findNearestEnemy(c); if (target) { const dir = { x: target.x - c.x, y: target.y - c.y }; const mag = Math.sqrt(dir.x ** 2 + dir.y ** 2) || 1; createFriendProjectile(c, { x: dir.x / mag, y: dir.y / mag }, c.type === 'ice_cream' ? 'laser-beam' : 'friend-projectile'); c.fireTimer = (c.type === 'dragon' ? 1 : c.type === 'ice_cream' ? 1.5 : 2) / c.attackSpeedFactor; } } break; } }); }
+
+        // --- GAME LOOP PRINCIPAL ---
+        function gameLoop() {
+            const now = performance.now(); const deltaTime = (now - lastTime) / 1000 || 0; lastTime = now;
+            switch (gameState) {
+                case 'MAIN_MENU': case 'PAUSED': break;
+                case 'SHOP': openShop(); gameState = 'PAUSED'; break; // BUGFIX: Transição correta para PAUSED
+                case 'STARTING_ROOM': startNewRoom(); break;
+                case 'CLEARING_ROOM':
+                    updateCompanions(deltaTime);
+                    if(playerState.watermelonOrb.damage > 0){const o=document.getElementById('watermelon-orb'); if(o){playerState.watermelonOrb.angle+=3*deltaTime;o.style.left=playerState.x-5+playerState.watermelonOrb.radius*Math.cos(playerState.watermelonOrb.angle)+'px';o.style.top=playerState.y-5+playerState.watermelonOrb.radius*Math.sin(playerState.watermelonOrb.angle)+'px';}}
+                    roomClearTimer -= deltaTime;
+                    if (roomClearTimer <= 0) {
+                        if(playerState.greenGrapesStacks>0){const u=activeCoins.length*(playerState.hasGrapesUpgrade?2:1);const b=Math.floor(u*(playerState.greenGrapesStacks*0.1));playerState.coins+=b;updateStatusBoard();}
+                        if ((currentRoom + 1) % 5 === 0) { gameState = 'SHOP'; } 
+                        else { currentRoom++; gameState = 'STARTING_ROOM'; }
+                        refs.roomMessage.style.display = 'none';
+                    }
+                    break;
+                case 'PLAYING':
+                    if(keys.ArrowUp){playerState.y-=playerState.speed;playerState.lastMoveDirection={x:0,y:-1};}
+                    if(keys.ArrowDown){playerState.y+=playerState.speed;playerState.lastMoveDirection={x:0,y:1};}
+                    if(keys.ArrowLeft){playerState.x-=playerState.speed;playerState.lastMoveDirection={x:-1,y:0};}
+                    if(keys.ArrowRight){playerState.x+=playerState.speed;playerState.lastMoveDirection={x:1,y:0};}
+                    playerState.y=Math.max(0,Math.min(playerState.y,570));playerState.x=Math.max(0,Math.min(playerState.x,770));
+                    refs.player.style.top=playerState.y+'px';refs.player.style.left=playerState.x+'px';
+                    if(playerState.isInvincible){playerState.invincibilityTimer-=deltaTime;refs.player.style.opacity=(refs.player.style.opacity=='0.5')?'1':'0.5';if(playerState.invincibilityTimer<=0){playerState.isInvincible=false;refs.player.style.opacity='1';}}
+                    if(playerState.orangeUpgrade>0){playerState.orangeFireTimer-=deltaTime;if(playerState.orangeFireTimer<=0){createOrangeShot();playerState.orangeFireTimer=5;}}
+                    if(playerState.watermelonOrb.damage>0){const o=document.getElementById('watermelon-orb');playerState.watermelonOrb.angle+=3*deltaTime;o.style.left=playerState.x-5+playerState.watermelonOrb.radius*Math.cos(playerState.watermelonOrb.angle)+'px';o.style.top=playerState.y-5+playerState.watermelonOrb.radius*Math.sin(playerState.watermelonOrb.angle)+'px';}
+                    if(playerState.hasPastaShot){playerState.pastaFireTimer-=deltaTime;if(playerState.pastaFireTimer<=0){createPastaProjectile();playerState.pastaFireTimer=playerState.pastaFireRate;}}
+                    if(playerState.butterStacks>0){activeEnemies.forEach(e=>{const dist=Math.sqrt((e.x-playerState.x)**2+(e.y-playerState.y)**2);if(dist<50+playerState.butterStacks*10){const pushVector={x:e.x-playerState.x,y:e.y-playerState.y};const mag=Math.sqrt(pushVector.x**2+pushVector.y**2)||1;e.x+=pushVector.x/mag*2;e.y+=pushVector.y/mag*2;}});}
+                    updateCompanions(deltaTime);
+                    for(let i=activeEnemies.length-1;i>=0;i--){const e=activeEnemies[i];const s=e.speed*e.slowFactor;e.x+=e.dx*s;e.y+=e.dy*s;if(e.x<=0||e.x>=765)e.dx*=-1;if(e.y<=0||e.y>=565)e.dy*=-1;e.div.style.left=e.x+'px';e.div.style.top=e.y+'px';const o=document.getElementById('watermelon-orb');if(playerState.watermelonOrb.damage>0&&o&&checkCollision(o,e.div))e.health-=playerState.watermelonOrb.damage*deltaTime;if(e.isPoisoned){e.health-=playerState.poisonDPS*deltaTime;e.poisonTimer-=deltaTime;if(e.poisonTimer<=0)e.isPoisoned=false;}if(checkCollision(refs.player,e.div))handlePlayerDamage(1);if(e.health<=0){createCoin(e.x,e.y);e.div.remove();activeEnemies.splice(i,1);}}
+                    function moveAndCheck(projArray,onHit){for(let i=projArray.length-1;i>=0;i--){let p=projArray[i];if(playerState.hasHomingShots&&projArray===activeProjectiles){const t=findNearestEnemy(p);if(t){const d={x:t.x-p.x,y:t.y-p.y};const m=Math.sqrt(d.x**2+d.y**2)||1;p.dx=d.x/m;p.dy=d.y/m;}}p.x+=p.dx*p.speed;p.y+=p.dy*p.speed;if(p.x>800||p.x<0||p.y>600||p.y<0){p.div.remove();projArray.splice(i,1);continue;}p.div.style.left=p.x+'px';p.div.style.top=p.y+'px';for(let j=activeEnemies.length-1;j>=0;j--){const e=activeEnemies[j];if(checkCollision(p.div,e.div)){p.div.remove();projArray.splice(i,1);onHit(e,p);if(e.health<=0){createCoin(e.x,e.y);e.div.remove();activeEnemies.splice(j,1);}break;}}}}
+                    moveAndCheck(activeProjectiles,(e,p)=>{e.health-=playerState.attack;if(playerState.hasPoisonUpgrade&&Math.random()<0.5){e.isPoisoned=true;e.poisonTimer=3;}});
+                    moveAndCheck(activePastaProjectiles,(e,p)=>{e.slowFactor=1-playerState.pastaSlowFactor;setTimeout(()=>e.slowFactor=1,2000);});
+                    moveAndCheck(activeOrangeProjectiles,(e,p)=>{e.health-=p.damage;});
+                    moveAndCheck(activeFriendProjectiles,(e,p)=>{e.health-=p.damage;});
+                    for(let i=activeFood.length-1;i>=0;i--){const f=activeFood[i];if(checkCollision(refs.player,f.div)){f.effect();f.div.remove();activeFood.splice(i,1);updateStatusBoard();}}
+                    for(let i=activeCoins.length-1;i>=0;i--){const c=activeCoins[i];if(checkCollision(refs.player,c.div)){playerState.coins+=playerState.hasGrapesUpgrade?2:1;c.div.remove();activeCoins.splice(i,1);updateStatusBoard();}}
+                    const cheeseFriend=activeCompanions.find(c=>c.type==='cheese');if(cheeseFriend){for(let i=activeFood.length-1;i>=0;i--){const f=activeFood[i];if(checkCollision(cheeseFriend.div,f.div)){f.effect();f.div.remove();activeFood.splice(i,1);updateStatusBoard();}}for(let i=activeCoins.length-1;i>=0;i--){const c=activeCoins[i];if(checkCollision(cheeseFriend.div,c.div)){playerState.coins+=playerState.hasGrapesUpgrade?2:1;c.div.remove();activeCoins.splice(i,1);updateStatusBoard();}}}
+                    if(activeEnemies.length===0){gameState='CLEARING_ROOM';showRoomMessage('Sala Limpa!',null);roomClearTimer=2.0;}
+                    break;
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        
+        window.addEventListener('keydown',e=>{if(keys.hasOwnProperty(e.key))keys[e.key]=true;});
+        window.addEventListener('keyup',e=>{if(keys.hasOwnProperty(e.key))keys[e.key]=false;});
+        window.addEventListener('keydown',e=>{if(e.key===' '&&gameState==='PLAYING'){e.preventDefault();let dir=playerState.aimInMoveDirection?playerState.lastMoveDirection:{x:1,y:0};if(playerState.hasDoubleShot){const p={x:-dir.y,y:dir.x};createProjectile(dir,p.y*5);createProjectile(dir,p.y*-5);}else{createProjectile(dir);}}});
+        
+        updateStatusBoard();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

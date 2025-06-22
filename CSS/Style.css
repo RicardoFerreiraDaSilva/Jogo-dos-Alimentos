@@ -1,0 +1,64 @@
+body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: sans-serif; }
+.hidden { display: none !important; }
+
+/* Estrutura Principal */
+#main-container { display: flex; gap: 20px; align-items: flex-start; }
+#game-container { position: relative; }
+#game-area { width: 800px; height: 600px; border: 2px solid #fff; background-color: #2c3e50; position: relative; overflow: hidden; }
+        
+/* Telas Overlay */
+.screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.9); }
+
+/* Estilos do Menu Principal */
+#main-menu h1 { font-size: 52px; color: #f1c40f; text-shadow: 2px 2px 5px #000; }
+#main-menu .menu-button { font-size: 24px; padding: 15px 30px; margin: 10px; width: 300px; cursor: pointer; border: 2px solid #fff; background-color: #3498db; color: white; }
+        
+/* Estilos da Enciclopédia */
+#encyclopedia-screen h2 { font-size: 36px; }
+#encyclopedia-items { width: 80%; height: 70%; background-color: #1c2833; overflow-y: auto; border: 2px solid #ddd; padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+.encyclopedia-card { background-color: #444; padding: 10px; border-radius: 5px; }
+.encyclopedia-card-header { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: bold; }
+.encyclopedia-card-title { display: flex; align-items: center; gap: 10px; }
+.encyclopedia-card-symbol { font-size: 28px; }
+.encyclopedia-card-cost { font-size: 16px; color: #f1c40f; }
+.encyclopedia-card-desc { font-size: 14px; margin-top: 5px; color: #ccc; }
+#encyclopedia-screen .back-button { margin-top: 20px; font-size: 20px; padding: 10px 20px; cursor: pointer; }
+
+/* Estilos do Jogo */
+.entity { position: absolute; }
+#player { width: 30px; height: 30px; background-color: #3498db; z-index: 10; }
+#ui-column { display: flex; flex-direction: column; align-items: center; }
+#status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+#inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+#inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+.inventory-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+#room-message { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; color: white; text-shadow: 2px 2px 4px black; z-index: 100; }
+        
+/* Estilos da Loja */
+#shop-controls { display: flex; gap: 15px; margin-top: 20px;}
+#shop-title { font-size: 36px; margin-bottom: 20px; }
+#shop-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 650px; }
+.shop-item { width: 140px; height: 140px; padding: 5px; box-sizing: border-box; border: 2px solid #ddd; background-color: #444; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; transition: background-color 0.2s, transform 0.2s; }
+.shop-item.rare { border-color: #8e44ad; } .shop-item.legendary { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; }
+.shop-item:hover { background-color: #555; transform: scale(1.05); }
+.shop-item.disabled { background-color: #222; color: #555; cursor: not-allowed; }
+.shop-item-symbol { font-size: 40px; }
+.shop-item-name { font-size: 16px; font-weight: bold; }
+#item-description { margin-top: 20px; height: 50px; font-size: 18px; text-align: center; }
+#proceed-button, #reroll-button { padding: 10px 20px; font-size: 20px; cursor: pointer; }
+#reroll-button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
+
+/* Estilos das Entidades do Jogo */
+.item { width: 25px; height: 25px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
+.enemy { width: 35px; height: 35px; background-color: #8e44ad; transition: all 0.1s; }
+.projectile, .pasta-projectile, .orange-projectile, .friend-projectile, .laser-beam { width: 15px; height: 5px; background-color: #f1c40f; }
+.pasta-projectile { background-color: #e6e6e6; } .orange-projectile { background-color: #e67e22; border-radius: 5px;} .friend-projectile { background-color: #d35400; border-radius: 2px;}
+.laser-beam { background-color: #ff00ff; box-shadow: 0 0 10px #ff00ff; height: 3px;}
+.coin { width: 15px; height: 15px; background-color: #f1c40f; border-radius: 50%; }
+.watermelon-orb { width: 40px; height: 40px; background-color: #27ae60; border: 2px solid #2ecc71; border-radius: 50%; opacity: 0.7; z-index: 9;}
+.companion { border: 2px outset #ccc; box-sizing: border-box; }
+#chocolate-friend { width: 28px; height: 28px; background-color: #7b241c; }
+#pitaya-dragon { width: 32px; height: 32px; background-color: #c0392b; border-radius: 50%; }
+#ice-cream-friend { width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 30px solid #ff79c6; background-color: transparent !important; }
+#yogurt-friend { width: 28px; height: 28px; background-color: #fdfefe; border-radius: 50%; }
+.banana { background-color: #ffda63; } .leite { background-color: #ffffff; color: black; } .cenoura { background-color: #e67e22; } .couve { background-color: #27ae60; } .ovo { background-color: #f7f1e3; border: 1px solid #aaa; color: #333; }
