@@ -5,53 +5,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A Lenda do Prato Equilibrado (v24 - Estável)</title>
     <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
-        .hidden { display: none !important; }
-        #main-container { display: flex; gap: 20px; align-items: flex-start; }
-        #game-container { position: relative; }
-        #game-area { width: 800px; height: 600px; border: 2px solid #fff; background-color: #2c3e50; position: relative; overflow: hidden; }
-        .entity { position: absolute; }
-        #player { width: 32px; height: 32px; background-color: transparent; background-image: url('imagens/gatinho_pixel_32x32.png'); background-size: contain; background-repeat: no-repeat; z-index: 10; }
-        #ui-column { display: flex; flex-direction: column; align-items: center; }
-        #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
-        #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
-        #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
-        .inventory-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.95); }
-        #main-menu h1 { font-size: 64px; color: #f1c40f; text-shadow: 3px 3px 8px #000; margin-bottom: 40px; }
-        #main-menu .menu-button { font-size: 28px; padding: 18px 35px; margin: 12px; width: 350px; cursor: pointer; border: 2px solid #fff; background-color: #3498db; color: white; border-radius: 5px; transition: all 0.2s; }
-        #main-menu .menu-button:hover { background-color: #4aa8e9; transform: scale(1.05); }
-        #encyclopedia-screen h2 { font-size: 36px; }
-        #encyclopedia-items { width: 80%; height: 70%; background-color: #1c2833; overflow-y: auto; border: 2px solid #ddd; padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-        .encyclopedia-card { background-color: #444; padding: 10px; border-radius: 5px; border-left: 5px solid #666; }
-        .encyclopedia-card.rare { border-left-color: #8e44ad; } .encyclopedia-card.legendary { border-left-color: #e74c3c; }
-        .encyclopedia-card-header { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: bold; }
-        .encyclopedia-card-title { display: flex; align-items: center; gap: 10px; }
-        .encyclopedia-card-symbol { font-size: 28px; }
-        .encyclopedia-card-cost { font-size: 16px; color: #f1c40f; }
-        .encyclopedia-card-desc { font-size: 14px; margin-top: 5px; color: #ccc; }
-        #encyclopedia-screen .back-button { margin-top: 20px; font-size: 20px; padding: 10px 20px; cursor: pointer; }
-        #shop-controls { display: flex; gap: 15px; margin-top: 20px;}
-        #shop-title { font-size: 36px; margin-bottom: 20px; }
-        #shop-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 650px; }
-        .shop-item { width: 140px; height: 140px; padding: 5px; box-sizing: border-box; border: 2px solid #ddd; background-color: #444; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .shop-item.rare { border-color: #8e44ad; } .shop-item.legendary { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; }
-        .shop-item:hover { background-color: #555; transform: scale(1.05); } .shop-item.disabled { background-color: #222; color: #555; cursor: not-allowed; }
-        .shop-item-symbol { font-size: 40px; } .shop-item-name { font-size: 16px; font-weight: bold; }
-        #item-description { margin-top: 20px; height: 50px; font-size: 18px; text-align: center; width: 600px;}
-        #proceed-button, #reroll-button { padding: 10px 20px; font-size: 20px; cursor: pointer; }
-        #reroll-button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
-        .item{width:32px;height:32px;background-color:transparent;background-size:contain;background-repeat:no-repeat;background-position:center;color:transparent;text-shadow:none;border-radius:0}
-        .enemy{width:35px;height:35px;background-color:#8e44ad;transition:all .1s}
-        .projectile,.pasta-projectile,.orange-projectile,.friend-projectile,.laser-beam{width:15px;height:5px;background-color:#f1c40f;position:absolute}
-        .pasta-projectile{background-color:#e6e6e6}.orange-projectile{background-color:#e67e22;border-radius:5px}.friend-projectile{background-color:#d35400;border-radius:2px}.laser-beam{background-color:#ff00ff;box-shadow:0 0 10px #ff00ff;height:3px}
-        .coin{width:15px;height:15px;background-color:#f1c40f;border-radius:50%}
-        .watermelon-orb{width:40px;height:40px;background-color:#27ae60;border:2px solid #2ecc71;border-radius:50%;opacity:.7;z-index:9}
-        .companion{border:none;background-color:transparent;background-size:contain;background-repeat:no-repeat;background-position:center;z-index:8}
-        .chocolate-friend{width:64px;height:64px;background-image:url(imagens/chocolate64x64.png)}.dragon-friend{width:64px;height:64px;background-image:url(imagens/Dragonpitaya64x64.png)}.ice-cream-friend{width:64px;height:64px;background-image:url(imagens/Sorvete64x64.png)}.yogurt-friend{width:64px;height:64px;background-image:url(imagens/iourgute64x64.png)}.cheese-friend{width:32px;height:32px;background-image:url(imagens/queijo_32x32.png)}
-        .banana{background-image:url(imagens/banana_32x32.png)}.leite{background-image:url(imagens/Leite_32x32.png)}.cenoura{background-image:url(imagens/cenoura_32x32.png)}.couve{background-image:url(imagens/couve_32x32.png)}.ovo{background-image:url(imagens/Ovo_32x32.png)}
-        #room-message{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:700;color:#fff;text-shadow:2px 2px 4px #000;z-index:100}
-    </style>
+    /* --- CONFIGURAÇÕES GERAIS E LAYOUT --- */
+    body { 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        height: 100vh; 
+        margin: 0; 
+        background-color: #222; 
+        color: white; 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        overflow: hidden; 
+    }
+    .hidden { 
+        display: none !important; 
+    }
+    #main-container { 
+        display: flex; 
+        gap: 20px; 
+        align-items: flex-start; 
+    }
+    #game-container { 
+        position: relative; 
+    }
+    #game-area { 
+        width: 800px; 
+        height: 600px; 
+        border: 2px solid #fff; 
+        background-color: #2c3e50; 
+        position: relative; 
+        overflow: hidden; 
+    }
+    .entity { 
+        position: absolute; 
+    }
+
+    /* --- TELAS DE OVERLAY (MENU, LOJA, ETC.) --- */
+    .screen { 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        z-index: 200; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center; 
+        background-color: rgba(0, 0, 0, 0.95); 
+    }
+    #main-menu h1 { 
+        font-size: 64px; 
+        color: #f1c40f; 
+        text-shadow: 3px 3px 8px #000; 
+        margin-bottom: 40px; 
+    }
+    #main-menu .menu-button { 
+        font-size: 28px; 
+        padding: 18px 35px; 
+        margin: 12px; 
+        width: 350px; 
+        cursor: pointer; 
+        border: 2px solid #fff; 
+        background-color: #3498db; 
+        color: white; 
+        border-radius: 5px; 
+        transition: all 0.2s; 
+    }
+    #main-menu .menu-button:hover { 
+        background-color: #4aa8e9; 
+        transform: scale(1.05); 
+    }
+    #encyclopedia-screen h2 { 
+        font-size: 36px; 
+    }
+    #encyclopedia-items { 
+        width: 80%; 
+        height: 70%; 
+        background-color: #1c2833; 
+        overflow-y: auto; 
+        border: 2px solid #ddd; 
+        padding: 15px; 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+        gap: 15px; 
+    }
+    .encyclopedia-card { 
+        background-color: #444; 
+        padding: 10px; 
+        border-radius: 5px; 
+        border-left: 5px solid #666; 
+    }
+    .encyclopedia-card.rare { border-left-color: #8e44ad; } 
+    .encyclopedia-card.legendary { border-left-color: #e74c3c; }
+    .encyclopedia-card-header { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: bold; }
+    .encyclopedia-card-title { display: flex; align-items: center; gap: 10px; }
+    .encyclopedia-card-symbol { font-size: 28px; }
+    .encyclopedia-card-cost { font-size: 16px; color: #f1c40f; }
+    .encyclopedia-card-desc { font-size: 14px; margin-top: 5px; color: #ccc; }
+    #encyclopedia-screen .back-button { margin-top: 20px; font-size: 20px; padding: 10px 20px; cursor: pointer; }
+    
+    /* --- INTERFACE DO USUÁRIO (UI) --- */
+    #ui-column { display: flex; flex-direction: column; align-items: center; }
+    #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+    #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+    #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+    .inventory-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    #room-message { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: 700; color: #fff; text-shadow: 2px 2px 4px #000; z-index: 100; }
+
+    /* --- LOJA --- */
+    #shop-controls { display: flex; gap: 15px; margin-top: 20px; }
+    #shop-title { font-size: 36px; margin-bottom: 20px; }
+    #shop-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 650px; }
+    .shop-item { width: 140px; height: 140px; padding: 5px; box-sizing: border-box; border: 2px solid #ddd; background-color: #444; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .shop-item.rare { border-color: #8e44ad; }
+    .shop-item.legendary { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; }
+    .shop-item:hover { background-color: #555; transform: scale(1.05); }
+    .shop-item.disabled { background-color: #222; color: #555; cursor: not-allowed; }
+    .shop-item-symbol { font-size: 40px; }
+    .shop-item-name { font-size: 16px; font-weight: bold; }
+    #item-description { margin-top: 20px; height: 50px; font-size: 18px; text-align: center; width: 600px; }
+    #proceed-button, #reroll-button { padding: 10px 20px; font-size: 20px; cursor: pointer; }
+    #reroll-button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
+
+    /* --- ENTIDADES DO JOGO --- */
+    #player { width: 32px; height: 32px; background-color: transparent; background-image: url('imagens/gatinho_pixel_32x32.png'); background-size: contain; background-repeat: no-repeat; z-index: 10; }
+    .enemy { width: 35px; height: 35px; background-color: #8e44ad; transition: all .1s; }
+    .coin { width: 15px; height: 15px; background-color: #f1c40f; border-radius: 50%; }
+    .watermelon-orb { width: 40px; height: 40px; background-color: #27ae60; border: 2px solid #2ecc71; border-radius: 50%; opacity: .7; z-index: 9; }
+    
+    /* --- ITENS COLETÁVEIS --- */
+    .item { width: 32px; height: 32px; background-color: transparent; background-size: contain; background-repeat: no-repeat; background-position: center; color: transparent; text-shadow: none; border-radius: 0; }
+    .banana { background-image: url('imagens/banana_32x32.png'); }
+    .leite { background-image: url('imagens/Leite_32x32.png'); }
+    .cenoura { background-image: url('imagens/cenoura_32x32.png'); }
+    .couve { background-image: url('imagens/couve_32x32.png'); }
+    .ovo { background-image: url('imagens/Ovo_32x32.png'); }
+
+    /* --- COMPANHEIROS --- */
+    .companion { border: none; background-color: transparent; background-size: contain; background-repeat: no-repeat; background-position: center; z-index: 8; }
+    .chocolate-friend { width: 64px; height: 64px; background-image: url('imagens/chocolate64x64.png'); }
+    .dragon-friend { width: 64px; height: 64px; background-image: url('imagens/Dragonpitaya64x64.png'); }
+    .ice-cream-friend {
+    width: 64px;
+    height: 64px;
+    background-image: url('imagens/Sorvete64x64.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    background-color: transparent;}
+    .yogurt-friend { width: 64px; height: 64px; background-image: url('imagens/iourgute64x64.png'); }
+    .cheese-friend { width: 32px; height: 32px; background-image: url('imagens/queijo_32x32.png'); }
+
+    /* --- PROJÉTEIS --- */
+    .projectile, .pasta-projectile, .orange-projectile, .friend-projectile, .laser-beam { width: 15px; height: 5px; background-color: #f1c40f; position: absolute; }
+    .pasta-projectile { background-color: #e6e6e6; }
+    .orange-projectile { background-color: #e67e22; border-radius: 5px; }
+    .friend-projectile { background-color: #d35400; border-radius: 2px; }
+    .laser-beam { background-color: #ff00ff; box-shadow: 0 0 10px #ff00ff; height: 3px; }
+</style>
 </head>
 <body>
     <div id="main-container" class="hidden"> <div id="game-container"> <div id="game-area"><div id="player" class="entity"></div></div> <div id="room-message" class="hidden"></div> </div> <div id="ui-column"> <div id="status-board"> <div>Sala: <span id="current-room">0</span></div> <div>Vida: <span id="player-health">10</span></div> <div>Escudo: <span id="player-shield">0</span></div> <div>Ataque: <span id="player-attack">1</span></div> <div>Moedas: <span id="player-coins">30</span></div> </div> <div id="inventory-display"><h3 id="inventory-title">Itens Comprados</h3><div id="inventory-list"></div></div> </div> </div> <div id="main-menu" class="screen"> <h1>A Lenda do Prato Equilibrado</h1> <button id="play-button" class="menu-button">Jogar</button> <button id="encyclopedia-button" class="menu-button">Enciclopédia de Itens</button> </div> <div id="encyclopedia-screen" class="screen hidden"> <h2>Enciclopédia de Alimentos</h2> <div id="encyclopedia-items"></div> <button id="back-to-menu-button" class="back-button">Voltar ao Menu</button> </div> <div id="shop-overlay" class="screen hidden"> <h2 id="shop-title">Mercado</h2> <div id="shop-items"></div> <p id="item-description">Passe o mouse sobre um item para ver a descrição.</p> <div id="shop-controls"><button id="reroll-button">Rerolar (0)</button><button id="proceed-button">Ir para a próxima sala</button></div> </div>
