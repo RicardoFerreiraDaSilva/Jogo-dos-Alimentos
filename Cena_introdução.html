@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Lenda do Prato Equilibrado - Introdução</title>
+    <style>
+        body { margin: 0; background-color: #222; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            background-image: url('imagens/fundo_introducao.png');
+            background-size: cover;
+            background-position: center;
+        }
+        #intro-npc {
+            width: 500px;
+            height: 500px;
+            background-image: url('imagens/gato_mago.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            position: absolute;
+            top: 62%;
+            left: 50%;
+            transform: translate(-50%, -80%); /* Centraliza e sobe um pouco */
+        }
+        #dialogue-box {
+            width: 90%;
+            max-width: 750px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: rgba(10, 20, 40, 0.9);
+            border: 3px solid #bda25a;
+            border-radius: 10px;
+            box-sizing: border-box;
+            text-align: center;
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.5);
+        }
+        #dialogue-text {
+            color: white;
+            font-size: 22px;
+            margin: 0 0 20px 0;
+            min-height: 50px;
+            line-height: 1.4;
+        }
+        #dialogue-next-button {
+            font-size: 18px;
+            padding: 10px 20px;
+            border: 2px solid #bda25a;
+            background-color: #2c3e50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            float: right;
+        }
+        #dialogue-next-button:hover {
+            background-color: #4a6581;
+        }
+    </style>
+</head>
+<body>
+    <div id="intro-screen" class="screen">
+        <div id="intro-npc"></div>
+        <div id="dialogue-box">
+            <p id="dialogue-text"></p>
+            <button id="dialogue-next-button">Próximo ></button>
+        </div>
+    </div>
+
+    <script>
+        // Lógica da tela de introdução
+        document.addEventListener('DOMContentLoaded', () => {
+            const dialogueText = document.getElementById('dialogue-text');
+            const nextButton = document.getElementById('dialogue-next-button');
+
+            const storyDialogue = [
+                "Olá, aventureiro! Você foi trazido a este mundo para ajudar a restaurar o equilíbrio.",
+                "Os Reis dos Alimentos enlouqueceram! Cada um acredita que seu grupo alimentar é superior e quer dominar tudo.",
+                "Sua jornada começa no Reino das Frutas, governado pela tirana Rainha Uva. O exército dela está por toda parte.",
+                "Para derrotá-los, você precisará de uma dieta balanceada. Felizmente, mercadores corajosos ainda vendem seus produtos na floresta.",
+                "Para começar, tome este suco mágico de todas as frutas. Ele lhe dará o poder de se defender.",
+                "Aqui estão também um livro sobre os alimentos que encontrará e 30 moedas. Boa sorte!",
+                "Agora vá! O equilíbrio dos alimentos depende de você!"
+            ];
+            let dialogueIndex = 0;
+
+            function showNextStoryLine() {
+                if (dialogueIndex < storyDialogue.length) {
+                    dialogueText.textContent = storyDialogue[dialogueIndex];
+                    if (dialogueIndex === storyDialogue.length - 1) {
+                        nextButton.textContent = "Começar Aventura!";
+                    }
+                    dialogueIndex++;
+                } else {
+                    // Fim do diálogo, redireciona para a página do jogo
+                    window.location.href = 'jogo_alimentos.html';
+                }
+            }
+
+            nextButton.addEventListener('click', showNextStoryLine);
+            showNextStoryLine(); // Mostra a primeira linha imediatamente
+        });
+    </script>
+</body>
+</html>
