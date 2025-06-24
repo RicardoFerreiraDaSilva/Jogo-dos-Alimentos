@@ -29,14 +29,24 @@
         #game-container { position: relative; }
         
         .entity { position: absolute; }
-        #player { width: 32px; height: 32px; background-color: transparent; background-image: url('imagens/gatinho_pixel_32x32.png'); background-size: contain; background-repeat: no-repeat; z-index: 10; }
+        #player { width: 64px; height: 64px; background-color: transparent; background-image: url('imagens/gatinho_pixel_32x32.png'); background-size: contain; background-repeat: no-repeat; z-index: 10; }
         #ui-column { display: flex; flex-direction: column; align-items: center; }
         #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
         #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
         #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
         .inventory-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.95); }
-        #main-menu h1 { font-size: 64px; color: #f1c40f; text-shadow: 3px 3px 8px #000; margin-bottom: 40px; }
+        #main-menu {
+    /* --- ADIÇÕES PARA O NOVO FUNDO --- */
+    /* Define a sua imagem como fundo */
+    background-image: url('imagens/Mercado.png');
+    
+    /* Garante que a imagem cubra toda a tela, sem distorcer */
+    background-size: cover;
+    
+    /* Centraliza a imagem de fundo */
+    background-position: center;
+}
         #main-menu .menu-button { font-size: 28px; padding: 18px 35px; margin: 12px; width: 350px; cursor: pointer; border: 2px solid #fff; background-color: #3498db; color: white; border-radius: 5px; transition: all 0.2s; }
         #main-menu .menu-button:hover { background-color: #4aa8e9; transform: scale(1.05); }
         #encyclopedia-screen h2 { font-size: 36px; }
@@ -59,10 +69,10 @@
         #item-description { margin-top: 20px; height: 50px; font-size: 18px; text-align: center; width: 600px;}
         #proceed-button, #reroll-button { padding: 10px 20px; font-size: 20px; cursor: pointer; }
         #reroll-button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
-        .item{width:32px;height:32px;background-color:transparent;background-size:contain;background-repeat:no-repeat;background-position:center;color:transparent;text-shadow:none;border-radius:0}
+        .item{width:80px;height:80px;background-color:transparent;background-size:contain;background-repeat:no-repeat;background-position:center;color:transparent;text-shadow:none;border-radius:0}
         .enemy {
-    width: 35px;
-    height: 35px;
+    width: 60px;
+    height: 60px;
     /* Removemos a cor de fundo roxa */
     background-color: transparent; 
     /* Adicionamos a nossa uva furiosa! */
