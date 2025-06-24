@@ -5,11 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A Lenda do Prato Equilibrado (v27 - Definitiva)</title>
     <style>
+    #game-area {
+    width: 800px;
+    height: 600px;
+    border: 2px solid #fff;
+    background-color: #2c3e50; /* Cor de fallback */
+
+    /* 1. Mude o nome do arquivo para a nova imagem */
+    background-image: url('imagens/fundo_floresta.png');
+
+    /* 2. Diga para a imagem NÃO se repetir */
+    background-repeat: no-repeat;
+
+    /* 3. (Opcional, mas recomendado) Garante que a imagem cubra a área */
+    background-size: cover; 
+
+    position: relative;
+    overflow: hidden;
+}
         body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
         .hidden { display: none !important; }
         #main-container { display: flex; gap: 20px; align-items: flex-start; }
         #game-container { position: relative; }
-        #game-area { width: 800px; height: 600px; border: 2px solid #fff; background-color: #2c3e50; position: relative; overflow: hidden; }
+        
         .entity { position: absolute; }
         #player { width: 32px; height: 32px; background-color: transparent; background-image: url('imagens/gatinho_pixel_32x32.png'); background-size: contain; background-repeat: no-repeat; z-index: 10; }
         #ui-column { display: flex; flex-direction: column; align-items: center; }
@@ -42,7 +60,17 @@
         #proceed-button, #reroll-button { padding: 10px 20px; font-size: 20px; cursor: pointer; }
         #reroll-button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
         .item{width:32px;height:32px;background-color:transparent;background-size:contain;background-repeat:no-repeat;background-position:center;color:transparent;text-shadow:none;border-radius:0}
-        .enemy{width:35px;height:35px;background-color:#8e44ad;transition:all .1s}
+        .enemy {
+    width: 35px;
+    height: 35px;
+    /* Removemos a cor de fundo roxa */
+    background-color: transparent; 
+    /* Adicionamos a nossa uva furiosa! */
+    background-image: url('imagens/inimigo_uva2.png');
+    background-size: contain; /* Garante que a imagem caiba no espaço */
+    background-repeat: no-repeat;
+    transition: all .1s;
+}
         .projectile,.pasta-projectile,.orange-projectile,.friend-projectile,.laser-beam{width:15px;height:5px;background-color:#f1c40f;position:absolute}
         .pasta-projectile{background-color:#e6e6e6}.orange-projectile{background-color:#e67e22;border-radius:5px}.friend-projectile{background-color:#d35400;border-radius:2px}.laser-beam{background-color:#ff00ff;box-shadow:0 0 10px #ff00ff;height:3px}
         .coin{width:15px;height:15px;background-color:#f1c40f;border-radius:50%}
