@@ -80,7 +80,18 @@
     background-size: contain; /* Garante que a imagem caiba no espaço */
     background-repeat: no-repeat;
     transition: all .1s; }
-        .projectile,.pasta-projectile,.orange-projectile,.friend-projectile,.laser-beam{width:15px;height:5px;background-color:#f1c40f;position:absolute}
+        /* Regra base para TODOS os projéteis */
+.projectile,.pasta-projectile,.orange-projectile,.friend-projectile,.laser-beam{
+    width:15px;
+    height:5px;
+    background-color:#f1c40f; /* Amarelo padrão */
+    position:absolute
+}
+
+/* Regra específica que SOBRESCREVE a cor apenas para o tiro do jogador */
+.projectile {
+    background-color: #0052cc; /* Novo azul */
+}
         .pasta-projectile{background-color:#e6e6e6}.orange-projectile{background-color:#e67e22;border-radius:5px}.friend-projectile{background-color:#d35400;border-radius:2px}.laser-beam{background-color:#ff00ff;box-shadow:0 0 10px #ff00ff;height:3px}
         .coin{width:15px;height:15px;background-color:#f1c40f;border-radius:50%}
         .watermelon-orb{width:40px;height:40px;background-color:#27ae60;border:2px solid #2ecc71;border-radius:50%;opacity:.7;z-index:9}

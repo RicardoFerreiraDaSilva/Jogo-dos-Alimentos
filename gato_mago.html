@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Bosque Mágico</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        .hidden { display: none !important; }
+        #main-container { display: flex; gap: 20px; align-items: flex-start; }
+        #game-container { position: relative; }
+        #game-area { 
+            width: 800px; height: 600px; border: 2px solid #fff; 
+            background: url('imagens/bosque_magico.png') center/cover no-repeat; /* NOVA IMAGEM */
+            position: relative; overflow: hidden; 
+        }
+        .entity { position: absolute; }
+        #player { width: 64px; height: 64px; background-image: url('imagens/gatinho_pixel_32x32.png'); background-size: contain; z-index: 10; }
+        #npc { width: 64px; height: 64px; background-image: url('imagens/gato_mago.png'); background-size: contain; top: 268px; left: 368px; z-index: 9; } /* NOVO NPC */
+        #ui-column { display: flex; flex-direction: column; align-items: center; }
+        #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+        #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+        #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+        #dialogue-box { 
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 750px; padding: 20px; 
+            background-color: rgba(10, 20, 40, 0.9); 
+            border: 3px solid #bda25a; border-radius: 10px; 
+            box-sizing: border-box; text-align: center; color: white; z-index: 200;
+        }
+        #dialogue-text { font-size: 22px; margin: 0 0 20px 0; min-height: 50px; line-height: 1.4; }
+        #dialogue-controls { display: flex; justify-content: flex-end; gap: 10px; } /* Container para botões */
+        .dialogue-button { font-size: 18px; padding: 10px 20px; border: 2px solid #bda25a; background-color: #2c3e50; color: white; border-radius: 5px; cursor: pointer; }
+        .dialogue-button:hover { background-color: #4a6581; }
+    </style>
+</head>
+<body>
+    <div id="main-container"> 
+        <div id="game-container"> 
+            <div id="game-area">
+                <div id="player" class="entity"></div>
+                <div id="npc" class="entity"></div>
+                <div id="dialogue-box" class="hidden"> 
+                    <p id="dialogue-text"></p>
+                    <div id="dialogue-controls">
+                        <button id="dialogue-next-button" class="dialogue-button">Próximo ></button>
+                    </div>
+                </div>
+            </div>
+        </div> 
+        <div id="ui-column"> 
+            <div id="status-board">
+                <div>Sala: <span id="current-room">1</span></div> 
+                <div>Vida: <span id="player-health">10</span></div> 
+                <div>Escudo: <span id="player-shield">0</span></div> 
+                <div>Ataque: <span id="player-attack">1</span></div> 
+                <div>Moedas: <span id="player-coins">0</span></div> 
+            </div> 
+            <div id="inventory-display"><h3 id="inventory-title">Itens Especiais</h3><div id="inventory-list"></div></div> 
+        </div> 
+    </div>
+
+    <script>
+        // --- REFERÊNCIAS AOS ELEMENTOS ---
+        const player = document.getElementById('player');
+        const npc = document.getElementById('npc');
+        const dialogueBox = document.getElementById('dialogue-box');
+        const dialogueText = document.getElementById('dialogue-text');
+        const dialogueControls = document.getElementById('dialogue-controls');
+        const nextButton = document.getElementById('dialogue-next-button');
+        const inventoryList = document.getElementById('inventory-list');
+        
+        // --- ESTADO DO JOGO ---
+        let playerState = { x: 384, y: 480, speed: 4 };
+        let sceneState = 'PLAYING';
+        const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+        let magoGiftGiven = false; // "Memória" do Gato Mago
+
+        player.style.left = playerState.x + 'px';
+        player.style.top = playerState.y + 'px';
+
+        // --- DIÁLOGOS DO GATO MAGO ---
+        let dialogueIndex = 0;
+        const magoInitialDialogues = [
+            "Olá! É bom te ver novamente!",
+            "Também estou ficando mais forte!",
+            "Consegui comidinhas muito boas! Quero compartilhar!",
+            "Escolha um prato, os outros vou dar para outros aventureiros."
+        ];
+        const magoRepeatDialogue = "Espero que a comida que te dei tenha ajudado em sua jornada!";
+
+        // --- ITENS E SEUS EFEITOS ---
+        const items = {
+            'Arroz e Feijão': 'Item Passivo: Se não tomar dano em uma sala, ganha +10 de Dano e +10 de Vida Máxima.',
+            'Peixe Assado': 'Item Passivo: Aumenta sua velocidade de movimento em +1.',
+            'Salada de Legumes': 'Item Passivo: Aumenta sua Vida Máxima em +5.' // Efeito que adicionei
+        };
+
+        // --- LÓGICA DO JOGO ---
+
+        function closeDialogue() {
+            dialogueBox.classList.add('hidden');
+            sceneState = 'PLAYING';
+            playerState.y += 20;
+        }
+
+        function handleItemChoice(itemName) {
+            // Lógica para quando um item é escolhido
+            magoGiftGiven = true; // Marca que o presente foi dado
+            localStorage.setItem('magoGift', itemName); // Salva o item escolhido
+
+            // Atualiza a UI do inventário
+            const itemElement = document.createElement('div');
+            itemElement.textContent = `Prato: ${itemName}`;
+            inventoryList.appendChild(itemElement);
+
+            dialogueText.textContent = "Muito gostoso!";
+            
+            // Limpa os botões de escolha e mostra um botão final para fechar
+            dialogueControls.innerHTML = ''; 
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Voltar ao Bosque';
+            closeBtn.className = 'dialogue-button';
+            closeBtn.onclick = closeDialogue;
+            dialogueControls.appendChild(closeBtn);
+        }
+
+        function presentItemChoice() {
+            // Mostra os botões de escolha dos itens
+            dialogueControls.innerHTML = ''; // Limpa o botão "Próximo"
+
+            Object.keys(items).forEach(itemName => {
+                const choiceButton = document.createElement('button');
+                choiceButton.textContent = itemName;
+                choiceButton.className = 'dialogue-button';
+                choiceButton.title = items[itemName]; // Mostra a descrição ao passar o mouse
+                choiceButton.onclick = () => handleItemChoice(itemName);
+                dialogueControls.appendChild(choiceButton);
+            });
+        }
+
+        function advanceMagoDialogue() {
+            if (dialogueIndex < magoInitialDialogues.length) {
+                dialogueText.textContent = magoInitialDialogues[dialogueIndex];
+                dialogueIndex++;
+            } else {
+                // Chegou a hora de escolher
+                presentItemChoice();
+            }
+        }
+
+        function startNpcDialogue() {
+            sceneState = 'PAUSED';
+            dialogueIndex = 0;
+            dialogueBox.classList.remove('hidden');
+            dialogueControls.innerHTML = ''; // Limpa controles antigos
+            
+            if (!magoGiftGiven) {
+                // Primeira conversa: oferece os itens
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Próximo >';
+                nextBtn.className = 'dialogue-button';
+                nextBtn.onclick = advanceMagoDialogue;
+                dialogueControls.appendChild(nextBtn);
+                advanceMagoDialogue();
+            } else {
+                // Conversas seguintes: mostra mensagem repetida
+                dialogueText.textContent = magoRepeatDialogue;
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = 'Até mais!';
+                closeBtn.className = 'dialogue-button';
+                closeBtn.onclick = closeDialogue;
+                dialogueControls.appendChild(closeBtn);
+            }
+        }
+        
+        function checkCollision(div1, div2, inset = 0) {
+            const rect1 = div1.getBoundingClientRect();
+            const rect2 = div2.getBoundingClientRect();
+            const smallerRect2 = {
+                left: rect2.left + inset, right: rect2.right - inset,
+                top: rect2.top + inset, bottom: rect2.bottom - inset
+            };
+            return !(rect1.right < smallerRect2.left || rect1.left > smallerRect2.right || rect1.bottom < smallerRect2.top || rect1.top > smallerRect2.bottom);
+        }
+
+        function sceneLoop() {
+            if (sceneState === 'PLAYING') {
+                if (keys.ArrowUp) playerState.y -= playerState.speed;
+                if (keys.ArrowDown) playerState.y += playerState.speed;
+                if (keys.ArrowLeft) playerState.x -= playerState.speed;
+                if (keys.ArrowRight) playerState.x += playerState.speed;
+
+                const playerSize = 64; 
+                if (playerState.x < 0) playerState.x = 0;
+                if (playerState.x > 800 - playerSize) playerState.x = 800 - playerSize;
+                if (playerState.y < 0) playerState.y = 0;
+                if (playerState.y > 600 - playerSize) playerState.y = 600 - playerSize;
+
+                player.style.top = playerState.y + 'px';
+                player.style.left = playerState.x + 'px';
+
+                if (checkCollision(player, npc, 30)) { 
+                    startNpcDialogue();
+                }
+            }
+            requestAnimationFrame(sceneLoop);
+        }
+
+        window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+        window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+
+        sceneLoop();
+    </script>
+</body>
+</html>
