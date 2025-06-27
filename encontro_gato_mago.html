@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Bosque Mágico</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        .hidden { display: none !important; }
+        #main-container { display: flex; gap: 20px; align-items: flex-start; }
+        #game-container { position: relative; }
+        #game-area { width: 800px; height: 600px; border: 2px solid #fff; background: url('imagens/bosque_magico.png') center/cover no-repeat; position: relative; overflow: hidden; }
+        .entity { position: absolute; }
+        #player { width: 64px; height: 64px; background-image: url('imagens/gatinho_pixel_32x32.png'); background-size: contain; z-index: 10; }
+        #npc { width: 64px; height: 64px; background-image: url('imagens/gato_mago.png'); background-size: contain; top: 268px; left: 368px; z-index: 9; }
+        #ui-column { display: flex; flex-direction: column; align-items: center; }
+        #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+        #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+        #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+        .inventory-item { padding: 5px; border-bottom: 1px solid #444; }
+        #dialogue-box { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 750px; padding: 20px; background-color: rgba(10, 20, 40, 0.9); border: 3px solid #bda25a; border-radius: 10px; box-sizing: border-box; text-align: center; color: white; z-index: 200; }
+        #dialogue-text { font-size: 22px; margin: 0 0 20px 0; min-height: 50px; line-height: 1.4; }
+        #dialogue-controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .dialogue-button { font-size: 18px; padding: 10px 20px; border: 2px solid #bda25a; background-color: #2c3e50; color: white; border-radius: 5px; cursor: pointer; }
+        .dialogue-button:hover { background-color: #4a6581; }
+        #proceed-button { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 15px 30px; font-size: 22px; cursor: pointer; background-color: #27ae60; color: white; border: 2px solid #2ecc71; border-radius: 10px; z-index: 150; }
+    </style>
+</head>
+<body>
+    <div id="main-container"> 
+        <div id="game-container"> 
+            <div id="game-area">
+                <div id="player" class="entity"></div>
+                <div id="npc" class="entity"></div>
+                <div id="dialogue-box" class="hidden"> 
+                    <p id="dialogue-text"></p>
+                    <div id="dialogue-controls"></div>
+                </div>
+                <button id="proceed-button" class="hidden">Ir para a próxima sala</button>
+            </div>
+        </div> 
+        <div id="ui-column"> 
+            <div id="status-board">
+                <div>Sala: <span id="current-room">?</span></div> 
+                <div>Vida: <span id="player-health">?</span></div> 
+                <div>Escudo: <span id="player-shield">?</span></div> 
+                <div>Ataque: <span id="player-attack">?</span></div> 
+                <div>Moedas: <span id="player-coins">?</span></div> 
+            </div> 
+            <div id="inventory-display"><h3 id="inventory-title">Pratos do Mago</h3><div id="inventory-list"></div></div> 
+        </div> 
+    </div>
+
+    <script>
+    // --- LÓGICA DE DADOS (A "MOCHILA MÁGICA") ---
+    function getNewPlayerState() { 
+        const state = { 
+            x: 385, y: 520, speed: 4, baseHealth: 10, bonusHealth: 0, 
+            baseAttack: 1, bonusAttack: 0, shield: 0, coins: 30, 
+            inventory: new Map(), currentRoom: 0, 
+            specialDishes: [] // Histórico de pratos para o inventário
+        }; 
+        Object.defineProperty(state, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true }); 
+        Object.defineProperty(state, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true }); 
+        return state; 
+    }
+    function savePlayerState(state) { const savableState = { ...state, inventory: Array.from(state.inventory.entries()) }; localStorage.setItem('meuJoguinhoState_v27', JSON.stringify(savableState)); }
+    function loadPlayerState() { const savedStateJSON = localStorage.getItem('meuJoguinhoState_v27'); if (!savedStateJSON) return null; const loadedObject = JSON.parse(savedStateJSON); const restoredState = { ...getNewPlayerState(), ...loadedObject, inventory: new Map(loadedObject.inventory) }; Object.defineProperty(restoredState, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true }); Object.defineProperty(restoredState, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true }); return restoredState; }
+
+    // --- SETUP DA PÁGINA ---
+    const refs = { player: document.getElementById('player'), npc: document.getElementById('npc'), dialogueBox: document.getElementById('dialogue-box'), dialogueText: document.getElementById('dialogue-text'), dialogueControls: document.getElementById('dialogue-controls'), inventoryList: document.getElementById('inventory-list'), proceedButton: document.getElementById('proceed-button'), ui: { room: document.getElementById('current-room'), health: document.getElementById('player-health'), shield: document.getElementById('player-shield'), attack: document.getElementById('player-attack'), coins: document.getElementById('player-coins') } };
+    let playerState = loadPlayerState() || getNewPlayerState();
+    let gameState = 'PLAYING';
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+    
+    // CORREÇÃO: "Memória" que zera a cada visita na sala
+    let hasChosenFoodThisVisit = false;
+
+    // --- DIÁLOGOS E ITENS ---
+    let dialogueIndex = 0;
+    const magoInitialDialogues = ["Olá! É bom te ver novamente!", "Também estou ficando mais forte!", "Consegui comidinhas muito boas! Quero compartilhar!", "Escolha um prato, os outros vou dar para outros aventureiros."];
+    const magoRepeatDialogue = "Espero que a comida que te dei tenha ajudado em sua jornada!";
+    const items = {
+        'Arroz e Feijão': { desc: '+10 Ataque Base, +10 Vida Bônus', effect: () => { playerState.baseAttack += 10; playerState.bonusHealth += 10; } },
+        'Peixe Assado': { desc: '+20 Ataque Base', effect: () => { playerState.baseAttack += 20; } },
+        'Salada de Legumes': { desc: '+100 Escudo', effect: () => { playerState.shield += 100; } }
+    };
+
+    // --- LÓGICA DO JOGO ---
+    function updateUI() { refs.ui.room.textContent = playerState.currentRoom; refs.ui.health.textContent = playerState.health.toFixed(0); refs.ui.shield.textContent = playerState.shield; refs.ui.attack.textContent = playerState.attack.toFixed(0); refs.ui.coins.textContent = playerState.coins; }
+    function updateInventory() { 
+        refs.inventoryList.innerHTML = ''; 
+        if (playerState.specialDishes) {
+            playerState.specialDishes.forEach(dishName => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'inventory-item';
+                itemEl.textContent = `Prato: ${dishName}`;
+                refs.inventoryList.appendChild(itemEl);
+            });
+        }
+    }
+    function checkCollision(div1, div2, inset = 0) { const r1 = div1.getBoundingClientRect(), r2 = div2.getBoundingClientRect(); const sr2 = { left: r2.left + inset, right: r2.right - inset, top: r2.top + inset, bottom: r2.bottom - inset }; return !(r1.right < sr2.left || r1.left > sr2.right || r1.bottom < sr2.top || r1.top > sr2.bottom); }
+
+    function returnToPlaying() {
+        refs.dialogueBox.classList.add('hidden');
+        gameState = 'PLAYING';
+        playerState.y += 20; // Empurra para baixo para evitar reativar o diálogo
+    }
+
+    function handleItemChoice(itemName) {
+        hasChosenFoodThisVisit = true; // Marca que a escolha nesta visita foi feita
+        playerState.specialDishes.push(itemName); // Adiciona ao histórico de pratos
+        
+        items[itemName].effect();
+        updateUI();
+        updateInventory();
+
+        refs.dialogueText.textContent = "Muito gostoso!";
+        
+        refs.dialogueControls.innerHTML = ''; 
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = 'Continuar Explorando';
+        closeBtn.className = 'dialogue-button';
+        closeBtn.onclick = () => {
+            returnToPlaying();
+            refs.proceedButton.classList.remove('hidden'); // Mostra o botão de saída
+        };
+        refs.dialogueControls.appendChild(closeBtn);
+    }
+
+    function presentItemChoice() {
+        refs.dialogueControls.innerHTML = ''; 
+        Object.keys(items).forEach(itemName => {
+            const choiceButton = document.createElement('button');
+            choiceButton.textContent = itemName;
+            choiceButton.className = 'dialogue-button';
+            choiceButton.title = items[itemName].desc;
+            choiceButton.onclick = () => handleItemChoice(itemName);
+            refs.dialogueControls.appendChild(choiceButton);
+        });
+    }
+
+    function advanceMagoDialogue() {
+        if (dialogueIndex < magoInitialDialogues.length) {
+            refs.dialogueText.textContent = magoInitialDialogues[dialogueIndex];
+            dialogueIndex++;
+            refs.dialogueControls.innerHTML = '';
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Próximo >';
+            nextBtn.className = 'dialogue-button';
+            nextBtn.onclick = advanceMagoDialogue;
+            refs.dialogueControls.appendChild(nextBtn);
+        } else {
+            presentItemChoice();
+        }
+    }
+
+    function startNpcDialogue() {
+        gameState = 'PAUSED';
+        dialogueIndex = 0;
+        refs.dialogueBox.classList.remove('hidden');
+        refs.dialogueControls.innerHTML = '';
+        
+        // CORREÇÃO: Verifica a memória temporária da visita
+        if (!hasChosenFoodThisVisit) {
+            advanceMagoDialogue();
+        } else {
+            refs.dialogueText.textContent = magoRepeatDialogue;
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Até mais!';
+            closeBtn.className = 'dialogue-button';
+            closeBtn.onclick = returnToPlaying;
+            refs.dialogueControls.appendChild(closeBtn);
+        }
+    }
+
+    function sceneLoop() {
+        if (gameState === 'PLAYING') {
+            if (keys.ArrowUp) playerState.y -= playerState.speed; if (keys.ArrowDown) playerState.y += playerState.speed; if (keys.ArrowLeft) playerState.x -= playerState.speed; if (keys.ArrowRight) playerState.x += playerState.speed;
+            const playerSize = 64; 
+            playerState.x = Math.max(0, Math.min(playerState.x, 800 - playerSize));
+            playerState.y = Math.max(0, Math.min(playerState.y, 600 - playerSize));
+            refs.player.style.top = playerState.y + 'px';
+            refs.player.style.left = playerState.x + 'px';
+            if (checkCollision(refs.player, refs.npc, 30)) { startNpcDialogue(); }
+        }
+        requestAnimationFrame(sceneLoop);
+    }
+
+    // --- INICIALIZAÇÃO E EVENTOS ---
+    updateUI();
+    updateInventory();
+    playerState.x = 368; playerState.y = 520;
+    refs.player.style.left = playerState.x + 'px'; refs.player.style.top = playerState.y + 'px';
+    
+    // Se a primeira interação já aconteceu, o botão de saída já aparece
+    if (hasChosenFoodThisVisit) { // Esta condição será sempre falsa no início, mas é uma boa prática
+        refs.proceedButton.classList.remove('hidden');
+    }
+
+    refs.proceedButton.addEventListener('click', () => {
+        savePlayerState(playerState);
+        window.location.href = 'jogosalas.html';
+    });
+    
+    window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+    window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+    
+    sceneLoop();
+    </script>
+</body>
+</html>
