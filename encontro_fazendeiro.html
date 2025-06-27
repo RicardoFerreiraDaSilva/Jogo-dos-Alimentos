@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fazenda de Morangos</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        .hidden { display: none !important; }
+        #main-container { display: flex; gap: 20px; align-items: flex-start; }
+        #game-container { position: relative; }
+        #game-area { width: 800px; height: 600px; border: 2px solid #fff; background: url('imagens/florestamercador.png') center/cover no-repeat; position: relative; }
+        .entity { position: absolute; background-size: contain; background-repeat: no-repeat; }
+        #player { width: 64px; height: 64px; background-image: url('imagens/gatinho_pixel_32x32.png'); z-index: 10; }
+        
+        #npc-fazendeiro { width: 128px; height: 128px; background-image: url('imagens/fazendeiro.png'); top: 300px; left: 50%; transform: translateX(-50%); cursor: pointer; }
+        #casa-fazendeiro { width: 200px; height: 200px; background-image: url('imagens/casa_fazendeiro.png'); top: 50px; left: 50%; transform: translateX(-50%); cursor: pointer; }
+
+        #ui-column { display: flex; flex-direction: column; align-items: center; }
+        #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+        #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+        #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+        .inventory-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .golden-item { color: #f1c40f; font-weight: bold; border: 1px solid #f1c40f; padding: 2px; border-radius: 3px;}
+
+        #dialogue-box { display: flex; flex-direction: column; justify-content: center; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 750px; padding: 20px; background-color: rgba(10, 20, 40, 0.9); border: 3px solid #bda25a; border-radius: 10px; text-align: center; z-index: 300; }
+        #dialogue-text { font-size: 22px; margin: 0 0 20px 0; min-height: 50px; }
+        #dialogue-next-button { font-size: 18px; padding: 10px 20px; border: 2px solid #bda25a; background-color: #2c3e50; color: white; cursor: pointer; align-self: flex-end; }
+        #choice-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.85); gap: 20px; }
+        .choice-button { width: 80%; max-width: 600px; padding: 20px; font-size: 18px; cursor: pointer; background-color: #2c3e50; color: white; border: 2px solid #bda25a; border-radius: 10px; text-align: center; }
+        .choice-button:hover { background-color: #34495e; }
+        .choice-title { font-size: 28px; color: white; text-shadow: 2px 2px 4px #000; margin-bottom: 10px; }
+
+        /* --- BOTÃO DE SAÍDA REPOSICIONADO --- */
+        #proceed-button {
+            position: absolute; /* Relativo à #game-area */
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            font-size: 22px;
+            cursor: pointer;
+            background-color: #27ae60;
+            color: white;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <div id="game-container">
+            <div id="game-area">
+                <div id="player" class="entity"></div>
+                <div id="npc-fazendeiro" class="entity"></div>
+                <div id="casa-fazendeiro" class="entity"></div>
+                <div id="dialogue-box" class="hidden">
+                    <p id="dialogue-text"></p>
+                    <button id="dialogue-next-button">Próximo ></button>
+                </div>
+                <div id="choice-overlay" class="hidden"></div>
+                
+                <button id="proceed-button" class="hidden">Ir para a próxima sala</button>
+            </div>
+        </div>
+        <div id="ui-column">
+            <div id="status-board">
+                <div>Sala: <span id="current-room">?</span></div>
+                <div>Vida: <span id="player-health">?</span></div>
+                <div>Escudo: <span id="player-shield">?</span></div>
+                <div>Ataque: <span id="player-attack">?</span></div>
+                <div>Moedas: <span id="player-coins">?</span></div>
+            </div>
+            <div id="inventory-display"><h3 id="inventory-title">Itens</h3><div id="inventory-list"></div></div>
+        </div>
+    </div>
+    
+    <script>
+    // --- LÓGICA DE DADOS ---
+    function getNewPlayerState() { const state = { x: 385, y: 520, speed: 4, baseHealth: 10, bonusHealth: 0, baseAttack: 1, bonusAttack: 0, shield: 0, coins: 30, inventory: new Map(), currentRoom: 0, strawberryShotCount: 0, rareFindChance: 0.2 }; Object.defineProperty(state, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true }); Object.defineProperty(state, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true }); return state; }
+    function savePlayerState(state) { const savableState = { ...state, inventory: Array.from(state.inventory.entries()) }; localStorage.setItem('meuJoguinhoState_v27', JSON.stringify(savableState)); }
+    function loadPlayerState() { const savedStateJSON = localStorage.getItem('meuJoguinhoState_v27'); if (!savedStateJSON) return null; const loadedObject = JSON.parse(savedStateJSON); const restoredState = { ...getNewPlayerState(), ...loadedObject, inventory: new Map(loadedObject.inventory) }; Object.defineProperty(restoredState, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true }); Object.defineProperty(restoredState, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true }); return restoredState; }
+
+    // --- SETUP DA PÁGINA ---
+    const refs = { player: document.getElementById('player'), npc: document.getElementById('npc-fazendeiro'), house: document.getElementById('casa-fazendeiro'), choiceOverlay: document.getElementById('choice-overlay'), dialogue: { box: document.getElementById('dialogue-box'), text: document.getElementById('dialogue-text'), nextButton: document.getElementById('dialogue-next-button') }, ui: { room: document.getElementById('current-room'), health: document.getElementById('player-health'), shield: document.getElementById('player-shield'), attack: document.getElementById('player-attack'), coins: document.getElementById('player-coins'), inventory: document.getElementById('inventory-list') }, proceedButton: document.getElementById('proceed-button') };
+    let playerState = loadPlayerState() || getNewPlayerState();
+    let gameState = 'PLAYING';
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+
+    // NOVO: Flag para controlar interação única por visita
+    let hasInteractedThisVisit = false;
+
+    // --- DIÁLOGOS DA CENA ---
+    let dialogueIndex = 0;
+    const farmerInitialDialogues = [ "Desde que a rainha Uva assumiu o poder não tenho tanta variedade de comida!", "Sabe que gosto de frutas mas acho que todos os alimentos são importantes!", "Só tenho morangos aqui comigo!" ];
+    const farmerAfterGiftDialogue = "Obrigado pela ajuda, jovem aventureiro! Boa sorte na sua jornada.";
+    const houseDialogues = [ "Parece aconchegante!", "Essa casa tem cheirinho de morango!", "Morangos vermelhos e suculentos na frente da casa! Que doçura!" ];
+    
+    function closeAllOverlays() {
+        refs.dialogue.box.classList.add('hidden');
+        refs.choiceOverlay.classList.add('hidden');
+        gameState = 'PLAYING';
+        playerState.y += 15;
+    }
+
+    function showDialogue(text, buttonText, onClickAction) {
+        refs.dialogue.text.textContent = text;
+        refs.dialogue.nextButton.textContent = buttonText;
+        refs.dialogue.nextButton.onclick = onClickAction;
+        refs.dialogue.box.classList.remove('hidden');
+    }
+
+    function advanceFarmerDialogue() {
+        if (dialogueIndex < farmerInitialDialogues.length) {
+            showDialogue(farmerInitialDialogues[dialogueIndex], 'Próximo >', advanceFarmerDialogue);
+            dialogueIndex++;
+        } else {
+            refs.dialogue.box.classList.add('hidden');
+            presentFoodChoice();
+        }
+    }
+
+    function presentFoodChoice() {
+        gameState = 'PAUSED';
+        refs.choiceOverlay.classList.remove('hidden');
+        refs.choiceOverlay.innerHTML = ''; 
+
+        const title = document.createElement('h2');
+        title.className = 'choice-title';
+        title.textContent = 'Dar comida ao cachorro fazendeiro:';
+        refs.choiceOverlay.appendChild(title);
+
+        const choices = [
+            { text: "Um pouco de leite e queijo (Laticínios)", type: 'laticinios', response: "Uau, que delícia! Isso me lembra de casa. Tome, pegue este morango como agradecimento!" },
+            { text: "Um pouco de carne e peixe (Proteínas)", type: 'proteinas', response: "Nossa, comida de verdade! Faz tempo que não como algo tão forte. Por favor, aceite este morango!" },
+            { text: "Um pouco de legumes e verduras (Hortaliças)", type: 'hortalicas', response: "Verduras! Que maravilha! A terra nos dá tudo que precisamos. Leve este morango, você merece!" },
+            { text: "Não dar nada.", type: 'nada' }
+        ];
+
+        choices.forEach(choice => {
+            const button = document.createElement('button');
+            button.className = 'choice-button';
+            button.textContent = choice.text;
+            if (choice.type === 'nada') {
+                button.onclick = () => {
+                    hasInteractedThisVisit = true;
+                    refs.proceedButton.classList.remove('hidden');
+                    closeAllOverlays();
+                };
+            } else {
+                button.onclick = () => giveFood(choice.response);
+            }
+            refs.choiceOverlay.appendChild(button);
+        });
+    }
+
+    function giveFood(responseText) {
+        refs.choiceOverlay.classList.add('hidden');
+        
+        playerState.baseHealth++;
+        playerState.baseAttack++;
+        playerState.shield++;
+        playerState.rareFindChance += 0.10;
+        playerState.strawberryShotCount = (playerState.strawberryShotCount || 0) + 1;
+        
+        const currentMorangos = playerState.inventory.get('Morango Brilhante') || 0;
+        playerState.inventory.set('Morango Brilhante', currentMorangos + 1);
+
+        updateStatusBoard();
+        updateInventoryDisplay();
+
+        hasInteractedThisVisit = true;
+        refs.proceedButton.classList.remove('hidden');
+
+        showDialogue(responseText, 'De nada!', closeAllOverlays);
+    }
+
+    function startFarmerInteraction() {
+        if (hasInteractedThisVisit) {
+            showDialogue(farmerAfterGiftDialogue, 'Até mais!', closeAllOverlays);
+        } else {
+            dialogueIndex = 0;
+            advanceFarmerDialogue();
+        }
+    }
+    
+    // --- LÓGICA DE ATUALIZAÇÃO E EVENTOS ---
+    function updateStatusBoard() { refs.ui.room.textContent = playerState.currentRoom; refs.ui.health.textContent = playerState.health.toFixed(0); refs.ui.shield.textContent = playerState.shield.toFixed(0); refs.ui.attack.textContent = playerState.attack.toFixed(0); refs.ui.coins.textContent = playerState.coins; }
+    function updateInventoryDisplay() { 
+        refs.ui.inventory.innerHTML = ''; 
+        playerState.inventory.forEach((count, name) => { 
+            const itemEl = document.createElement('div'); 
+            itemEl.className = 'inventory-item';
+            if (name === 'Morango Brilhante') { itemEl.classList.add('golden-item'); }
+            itemEl.textContent = `${name} ${count > 1 ? `x${count}` : ''}`; 
+            refs.ui.inventory.appendChild(itemEl); 
+        }); 
+    }
+    function checkCollision(div1, div2, inset = 0) { const r1 = div1.getBoundingClientRect(), r2 = div2.getBoundingClientRect(); const sr2 = { left: r2.left + inset, right: r2.right - inset, top: r2.top + inset, bottom: r2.bottom - inset }; return !(r1.right < sr2.left || r1.left > sr2.right || r1.bottom < sr2.top || r1.top > sr2.bottom); }
+
+    function sceneLoop() {
+        if (gameState === 'PLAYING') {
+            if (keys.ArrowUp) playerState.y -= playerState.speed; if (keys.ArrowDown) playerState.y += playerState.speed; if (keys.ArrowLeft) playerState.x -= playerState.speed; if (keys.ArrowRight) playerState.x += playerState.speed;
+            playerState.x = Math.max(0, Math.min(playerState.x, 800 - 64));
+            playerState.y = Math.max(0, Math.min(playerState.y, 600 - 64));
+            refs.player.style.left = playerState.x + 'px'; refs.player.style.top = playerState.y + 'px';
+            
+            if (checkCollision(refs.player, refs.npc, 30)) { gameState = 'PAUSED'; startFarmerInteraction(); } 
+            else if (checkCollision(refs.player, refs.house, 40)) { 
+                gameState = 'PAUSED'; 
+                const randomHouseLine = houseDialogues[Math.floor(Math.random() * houseDialogues.length)];
+                showDialogue(randomHouseLine, 'Sair', closeAllOverlays);
+            }
+        }
+        requestAnimationFrame(sceneLoop);
+    }
+    
+    // Inicialização
+    updateStatusBoard(); updateInventoryDisplay();
+    playerState.x = 368; playerState.y = 450;
+    refs.player.style.left = playerState.x + 'px'; refs.player.style.top = playerState.y + 'px';
+    window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+    window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+    
+    refs.proceedButton.addEventListener('click', () => {
+        savePlayerState(playerState);
+        window.location.href = 'jogosalas.html';
+    });
+
+    sceneLoop();
+    </script>
+</body>
+</html>

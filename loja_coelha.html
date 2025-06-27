@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado da Coelha</title>
+    <style>
+        /* Estilos CSS (modificados para a nova sala) */
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        .hidden { display: none !important; }
+        #main-container { display: flex; gap: 20px; align-items: flex-start; }
+        #game-container { position: relative; }
+        /* NOVO: Fundo do bosque alaranjado */
+        #game-area { width: 800px; height: 600px; border: 2px solid #fff; background: url('imagens/bosque_alaranjado.png') center/cover no-repeat; position: relative; }
+        .entity { position: absolute; background-size: contain; background-repeat: no-repeat; }
+        #player { width: 64px; height: 64px; background-image: url('imagens/gatinho_pixel_32x32.png'); z-index: 10; }
+        /* NOVO: NPC Coelha */
+        #npc-coelha { width: 128px; height: 128px; background-image: url('imagens/coelha_mercador.png'); top: 250px; left: 300px; cursor: pointer; }
+        /* NOVO: Barraca da Coelha */
+        #mercado-stall { width: 230px; height: 230px; background-image: url('imagens/mercado_coelha.png'); top: 100px; left: 140px; cursor: pointer; }
+        #ui-column { display: flex; flex-direction: column; align-items: center; }
+        #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+        #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+        #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+        .inventory-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        #shop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.85); }
+        #shop-box { position: relative; padding: 20px; background-color: #1c2833; border: 2px solid #fff; border-radius: 10px; text-align: center; }
+        #shop-close-button { position: absolute; top: 10px; right: 15px; font-size: 24px; color: white; background: none; border: none; cursor: pointer; }
+        #shop-controls { display: flex; gap: 15px; margin-top: 20px;}
+        #shop-title { font-size: 36px; margin-bottom: 20px; }
+        #shop-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 750px; }
+        .shop-item { width: 140px; height: 140px; padding: 5px; box-sizing: border-box; border: 2px solid #ddd; background-color: #444; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; transition: all 0.2s; border-radius: 8px; }
+        .shop-item.rare { border-color: #8e44ad; } .shop-item.legendary { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; }
+        .shop-item:hover { background-color: #555; transform: scale(1.05); }
+        .shop-item.disabled { background-color: #222; color: #555; cursor: not-allowed; opacity: 0.6; }
+        .shop-item-symbol { font-size: 40px; } .shop-item-name { font-size: 16px; font-weight: bold; margin-top: 5px;}
+        #item-description { margin-top: 20px; height: 50px; font-size: 18px; text-align: center; width: 600px;}
+        #proceed-button, #reroll-button { padding: 10px 20px; font-size: 20px; cursor: pointer; }
+        #reroll-button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
+        #dialogue-box { display: flex; flex-direction: column; justify-content: center; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 750px; padding: 20px; background-color: rgba(10, 20, 40, 0.9); border: 3px solid #bda25a; border-radius: 10px; text-align: center; z-index: 300; }
+        #dialogue-text { font-size: 22px; margin: 0 0 20px 0; min-height: 50px; }
+        #dialogue-next-button { font-size: 18px; padding: 10px 20px; border: 2px solid #bda25a; background-color: #2c3e50; color: white; cursor: pointer; align-self: flex-end; }
+        .discount { color: #2ecc71; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <div id="game-container">
+            <div id="game-area">
+                <div id="player" class="entity"></div>
+                <div id="npc-coelha" class="entity"></div>
+                <div id="mercado-stall" class="entity"></div>
+                <div id="dialogue-box" class="hidden">
+                    <p id="dialogue-text"></p>
+                    <button id="dialogue-next-button">Próximo ></button>
+                </div>
+            </div>
+        </div>
+        <div id="ui-column">
+            <div id="status-board">
+                <div>Sala: <span id="current-room">?</span></div>
+                <div>Vida: <span id="player-health">?</span></div>
+                <div>Escudo: <span id="player-shield">?</span></div>
+                <div>Ataque: <span id="player-attack">?</span></div>
+                <div>Moedas: <span id="player-coins">?</span></div>
+            </div>
+            <div id="inventory-display"><h3 id="inventory-title">Itens Comprados</h3><div id="inventory-list"></div></div>
+        </div>
+    </div>
+    
+    <div id="shop-overlay" class="screen hidden">
+        <div id="shop-box">
+            <button id="shop-close-button">X</button>
+            <h2 id="shop-title">Mercado da Coelha</h2>
+            <div id="shop-items"></div>
+            <p id="item-description">Passe o mouse sobre um item para ver a descrição.</p>
+            <div id="shop-controls">
+                <button id="reroll-button">Rerolar (0)</button>
+                <button id="proceed-button">Ir para a próxima sala</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // --- LÓGICA DE DADOS (Inalterada) ---
+    function getNewPlayerState() { const state = { x: 385, y: 520, speed: 4, baseHealth: 10, bonusHealth: 0, baseAttack: 1, bonusAttack: 0, shield: 0, coins: 30, inventory: new Map(), currentRoom: 0, shopRerolls: 0, hasGrapesUpgrade: false, rareFindChance: 0.4, legendaryFindChance: 0.15, extraShopSlots:0, coelhaDialogueDone: false, companionsToSummon: [] }; Object.defineProperty(state, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true }); Object.defineProperty(state, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true }); return state; }
+    function savePlayerState(state) { const savableState = { ...state, inventory: Array.from(state.inventory.entries()) }; localStorage.setItem('meuJoguinhoState_v27', JSON.stringify(savableState)); }
+    function loadPlayerState() { const savedStateJSON = localStorage.getItem('meuJoguinhoState_v27'); if (!savedStateJSON) return null; const loadedObject = JSON.parse(savedStateJSON); const restoredState = { ...getNewPlayerState(), ...loadedObject, inventory: new Map(loadedObject.inventory) }; Object.defineProperty(restoredState, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true }); Object.defineProperty(restoredState, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true }); return restoredState; }
+
+    // --- SETUP DA PÁGINA ---
+    const refs = { player: document.getElementById('player'), npc: document.getElementById('npc-coelha'), stall: document.getElementById('mercado-stall'), shop: { overlay: document.getElementById('shop-overlay'), closeButton: document.getElementById('shop-close-button'), itemsContainer: document.getElementById('shop-items'), description: document.getElementById('item-description'), proceedButton: document.getElementById('proceed-button'), rerollButton: document.getElementById('reroll-button') }, dialogue: { box: document.getElementById('dialogue-box'), text: document.getElementById('dialogue-text'), nextButton: document.getElementById('dialogue-next-button') }, ui: { room: document.getElementById('current-room'), health: document.getElementById('player-health'), shield: document.getElementById('player-shield'), attack: document.getElementById('player-attack'), coins: document.getElementById('player-coins'), inventory: document.getElementById('inventory-list') } };
+    let playerState = loadPlayerState() || getNewPlayerState();
+    let gameState = 'PLAYING';
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+
+    // --- DIÁLOGO DA COELHA (NOVO) ---
+    let dialogueIndex = 0;
+    const coelhaInitialDialogues = [
+        "Olá aventureiro! Compre minhas mercadorias! Vendo de tudo!",
+        "Venho do Reino das Hortaliças! Então 50% de desconto em vegetais e legumes!",
+        "Não suporto essa Rainha Uva! Ela é uma tonta!",
+        "Quem pode imaginar viver sem comer legumes! Cenouras são demais!"
+    ];
+    // NOVO: Múltiplos diálogos de repetição
+    const coelhaRepeatDialogues = [
+        "Acho incrível como mesmo com a proibição da Rainha Uva as couves continuam brotando pelo chão!",
+        "Se a natureza não liga para rainhas tontas, porque nós vamos ligar?",
+        "Amo ficar nesse bosque tão laranja! me lembra de abóbora e cenouras!",
+        "Tão suculento!"
+    ];
+
+    function advanceCoelhaDialogue() { if (dialogueIndex < coelhaInitialDialogues.length) { refs.dialogue.text.textContent = coelhaInitialDialogues[dialogueIndex]; dialogueIndex++; } else { refs.dialogue.box.classList.add('hidden'); gameState = 'PLAYING'; playerState.coelhaDialogueDone = true; playerState.y += 20; } }
+    function startCoelhaDialogue() { 
+        gameState = 'PAUSED'; 
+        refs.dialogue.box.classList.remove('hidden'); 
+        if (!playerState.coelhaDialogueDone) { 
+            dialogueIndex = 0; 
+            refs.dialogue.nextButton.textContent = 'Próximo >'; 
+            refs.dialogue.nextButton.onclick = advanceCoelhaDialogue; 
+            advanceCoelhaDialogue(); 
+        } else {
+            // Escolhe uma fala aleatória para repetir
+            const randomLine = coelhaRepeatDialogues[Math.floor(Math.random() * coelhaRepeatDialogues.length)];
+            refs.dialogue.text.textContent = randomLine;
+            refs.dialogue.nextButton.textContent = 'Fechar'; 
+            refs.dialogue.nextButton.onclick = () => { refs.dialogue.box.classList.add('hidden'); gameState = 'PLAYING'; playerState.y += 20; }; 
+        } 
+    }
+
+    // --- LÓGICA DO MERCADO (COM DESCONTO) ---
+    // NOVO: Adicionado 'category' para vegetais para aplicar o desconto.
+    const masterShopList = [
+        {id:'alface', name:'Alface', symbol:'🥬', desc:'Concede 30 de escudo.', cost:30, category: 'vegetable'},
+        {id:'brocolis', name:'Brócolis', symbol:'🥦', desc:'Ganha +1 chance de rerolar os itens da loja.', cost:15, category: 'vegetable'},
+        {id:'pepino', name:'Pepino', symbol:'🥒', desc:'Adiciona +1 opção de item no próximo mercado (máx. 12).', cost:20, category: 'vegetable'},
+        {id:'tomate', name:'Tomate', symbol:'🍅', desc:'Dobra seu ataque base permanentemente.', cost:30, category: 'vegetable'},
+        {id:'laranja', name:'Laranja', symbol:'🍊', desc:'Dispara 5 projéteis a cada 5s (+2 de dano por compra).', cost:35},
+        {id:'maca', name:'Maçã', symbol:'🍎', desc:'Tiros têm 50% de chance de aplicar veneno.', cost:30},
+        // ... adicione o resto da sua masterShopList aqui
+    ];
+    
+    function updateStatusBoard() { refs.ui.room.textContent = playerState.currentRoom; refs.ui.health.textContent = playerState.health.toFixed(0); refs.ui.shield.textContent = playerState.shield.toFixed(0); refs.ui.attack.textContent = playerState.attack.toFixed(0); refs.ui.coins.textContent = playerState.coins; }
+    function updateInventoryDisplay() { refs.ui.inventory.innerHTML = ''; playerState.inventory.forEach((count, name) => { const itemEl = document.createElement('div'); itemEl.className = 'inventory-item'; itemEl.textContent = `${name} ${count > 1 ? `x${count}` : ''}`; refs.ui.inventory.appendChild(itemEl); }); }
+    
+    // NOVO: Função de compra agora calcula o custo final com desconto.
+    function applyShopItemEffect(itemId) {
+        const itemData = masterShopList.find(i => i.id === itemId);
+        if (!itemData) return;
+
+        // LÓGICA DE DESCONTO
+        let finalCost = itemData.cost;
+        if (itemData.category === 'vegetable') {
+            finalCost = Math.ceil(finalCost * 0.5); // Arredonda para cima
+        }
+
+        if (playerState.coins < finalCost) return;
+
+        const invCount = playerState.inventory.get(itemData.name) || 0;
+        if (itemData.stackable === false && invCount > 0) return;
+        
+        playerState.coins -= finalCost;
+        if (itemData.onPurchase) itemData.onPurchase();
+        playerState.inventory.set(itemData.name, invCount + 1);
+        updateStatusBoard();
+        updateInventoryDisplay();
+        openShop();
+    }
+
+    // NOVO: Função da loja agora exibe o preço com desconto.
+    function openShop() {
+        refs.shop.overlay.classList.remove('hidden');
+        refs.shop.itemsContainer.innerHTML = '';
+        const pool = masterShopList; // Simplificado para mostrar todos os itens
+        
+        pool.forEach(itemData => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `shop-item ${itemData.rarity || ''}`;
+            
+            let finalCost = itemData.cost;
+            let discountText = '';
+            if (itemData.category === 'vegetable') {
+                finalCost = Math.ceil(finalCost * 0.5);
+                discountText = ` <span class="discount">(${finalCost} M)</span>`;
+            }
+
+            itemDiv.innerHTML = `<div class="shop-item-symbol">${itemData.symbol}</div><div class="shop-item-name">${itemData.name}${discountText}</div>`;
+            
+            if (playerState.coins < finalCost) itemDiv.classList.add('disabled');
+            
+            itemDiv.addEventListener('mouseover', () => {
+                refs.shop.description.textContent = `${itemData.desc} (Custo: ${finalCost} moedas)`;
+            });
+            itemDiv.addEventListener('click', () => applyShopItemEffect(itemData.id));
+            refs.shop.itemsContainer.appendChild(itemDiv);
+        });
+
+        refs.shop.description.textContent = 'Passe o mouse sobre um item para ver a descrição.';
+        refs.shop.rerollButton.textContent = `Rerolar (${playerState.shopRerolls})`;
+        refs.shop.rerollButton.disabled = playerState.shopRerolls <= 0;
+    }
+    
+    function checkCollision(div1, div2, inset = 0) { const r1 = div1.getBoundingClientRect(), r2 = div2.getBoundingClientRect(); const sr2 = { left: r2.left + inset, right: r2.right - inset, top: r2.top + inset, bottom: r2.bottom - inset }; return !(r1.right < sr2.left || r1.left > sr2.right || r1.bottom < sr2.top || r1.top > sr2.bottom); }
+
+    // --- LOOP DA CENA E EVENTOS ---
+    function sceneLoop() {
+        if (gameState === 'PLAYING') {
+            if (keys.ArrowUp) playerState.y -= playerState.speed; if (keys.ArrowDown) playerState.y += playerState.speed; if (keys.ArrowLeft) playerState.x -= playerState.speed; if (keys.ArrowRight) playerState.x += playerState.speed;
+            playerState.x = Math.max(0, Math.min(playerState.x, 800 - 64));
+            playerState.y = Math.max(0, Math.min(playerState.y, 600 - 64));
+            refs.player.style.left = playerState.x + 'px'; refs.player.style.top = playerState.y + 'px';
+            if (checkCollision(refs.player, refs.npc, 40)) { startCoelhaDialogue(); } 
+            else if (checkCollision(refs.player, refs.stall, 50)) { gameState = 'PAUSED'; openShop(); }
+        }
+        requestAnimationFrame(sceneLoop);
+    }
+    
+    updateStatusBoard(); updateInventoryDisplay();
+    playerState.x = 368; playerState.y = 500;
+    refs.player.style.left = playerState.x + 'px'; refs.player.style.top = playerState.y + 'px';
+    refs.shop.rerollButton.addEventListener('click', () => { if (playerState.shopRerolls > 0) { playerState.shopRerolls--; openShop(); } });
+    refs.shop.proceedButton.addEventListener('click', () => { savePlayerState(playerState); window.location.href = 'jogosalas.html'; });
+    refs.shop.closeButton.addEventListener('click', () => { refs.shop.overlay.classList.add('hidden'); gameState = 'PLAYING'; playerState.y += 20; });
+    window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+    window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+    sceneLoop();
+    </script>
+</body>
+</html>
