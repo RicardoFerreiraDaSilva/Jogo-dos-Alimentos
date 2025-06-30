@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-T">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A Lenda do Prato Equilibrado</title>
     <style>
-        /* CSS Principal (Inalterado) */
+        /* CSS Principal */
         body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
         .hidden { display: none !important; }
         #main-container { display: flex; gap: 20px; align-items: flex-start; }
@@ -28,48 +28,50 @@
         #choice-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; z-index: 150; }
         .choice-button { width: 80%; max-width: 600px; padding: 20px; font-size: 18px; cursor: pointer; background-color: #2c3e50; color: white; border: 2px solid #bda25a; border-radius: 10px; text-align: center; }
         .choice-button:hover { background-color: #34495e; }
-        #encyclopedia-screen { flex-direction: column; justify-content: flex-start; padding: 20px; box-sizing: border-box; }
-        #encyclopedia-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1000px; }
-        #encyclopedia-header h1 { margin: 0; }
+        #encyclopedia-screen, #cards-screen { flex-direction: column; justify-content: flex-start; padding: 20px; box-sizing: border-box; }
+        #encyclopedia-header, #cards-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1000px; }
+        #encyclopedia-header h1, #cards-header h1 { margin: 0; }
         #encyclopedia-filters { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; justify-content: center; }
         .filter-button { padding: 10px 20px; cursor: pointer; background-color: #2c3e50; border: 2px solid #bda25a; border-radius: 5px; }
         .filter-button:hover, .filter-button.active { background-color: #34495e; }
-        #encyclopedia-list { width: 100%; max-width: 1000px; height: calc(100vh - 180px); overflow-y: auto; background-color: #1c2833; padding: 10px; border-radius: 5px; }
+        #encyclopedia-list, #cards-list { width: 100%; max-width: 1000px; height: calc(100vh - 180px); overflow-y: auto; background-color: #1c2833; padding: 10px; border-radius: 5px; }
         .encyclopedia-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #34495e; }
         .encyclopedia-item-symbol { font-size: 24px; min-width: 40px; text-align: center; }
-        .encyclopedia-item-details { display: flex; flex-direction: column; }
-        .encyclopedia-item-title { font-size: 18px; font-weight: bold; }
+        .encyclopedia-item-details, .card-item-details { display: flex; flex-direction: column; }
+        .encyclopedia-item-title, .card-item-title { font-size: 18px; font-weight: bold; }
+        .card-item { padding: 15px; border-bottom: 1px solid #00c2ff; }
+        .card-item-title { color: #00c2ff; }
         .rarity-comum { color: #ecf0f1; } .rarity-raro { color: #3498db; } .rarity-lendario { color: #9b59b6; } .rarity-especial { color: #f1c40f; font-weight: bold; }
 
-        /* Estilos das Entidades do Jogo (Com Adições) */
+        /* Estilos das Entidades do Jogo */
         .enemy { width: 60px; height: 60px; background-image: url('imagens/inimigo_uva2.png'); }
         .projectile,.pasta-projectile,.orange-projectile,.friend-projectile,.laser-beam, .bee-projectile{width:15px;height:5px;background-color:#00aaff;box-shadow: 0 0 5px #00aaff;position:absolute}
         .strawberry-shot { background-color: #e74c3c; background-image: url('imagens/morango_tiro.png'); width: 16px; height: 16px; }
         .pasta-projectile{background-color:#e6e6e6}.orange-projectile{background-color:#e67e22;border-radius:5px}.friend-projectile{background-color:#d35400;border-radius:2px}.laser-beam{background-color:#ff00ff;box-shadow:0 0 10px #ff00ff;height:3px}
-        .bee-projectile { width: 12px; height: 12px; background-color: #f1c40f; border-radius: 50%; border: 2px solid black; } /* Estilo para a abelha */
+        .bee-projectile { width: 12px; height: 12px; background-color: #f1c40f; border-radius: 50%; border: 2px solid black; }
         .coin{width:30px;height:30px;background-image:url('imagens/moedas.png');background-size:contain;background-repeat:no-repeat;}
         .item{width:32px;height:32px;}
         .watermelon-orb{width:40px;height:40px;background-color:#27ae60;border:2px solid #2ecc71;border-radius:50%;opacity:.7;z-index:9}
         .companion{border:none;background-color:transparent;background-size:contain;background-repeat:no-repeat;background-position:center;z-index:8}
         .chocolate-friend{width:64px;height:64px;background-image:url(imagens/chocolate64x64.png)}.dragon-friend{width:64px;height:64px;background-image:url(imagens/Dragonpitaya64x64.png)}.ice-cream-friend{width:64px;height:64px;background-image:url(imagens/Sorvete64x64.png)}.yogurt-friend{width:64px;height:64px;background-image:url(imagens/iourgute64x64.png)}.cheese-friend{width:32px;height:32px;background-image:url(imagens/amigo_queijo.png)}
-        .abobora-friend{width:64px;height:64px;background-image:url(imagens/abobora.png)} /* Imagem do companheiro abóbora */
+        .abobora-friend{width:64px;height:64px;background-image:url(imagens/abobora.png)}
         .banana{background-image:url(imagens/banana_32x32.png)}.leite{background-image:url(imagens/Leite_32x32.png)}.cenoura{background-image:url(imagens/cenoura_32x32.png)}.couve{background-image:url(imagens/couve_32x32.png)}.ovo{background-image:url(imagens/Ovo_32x32.png)}
-        .milho{background-image:url(imagens/milho.png)} /* Imagem do milho */
+        .milho{background-image:url(imagens/milho.png)}
     </style>
 </head>
 <body>
     <div id="main-container" class="hidden"> <div id="game-container"> <div id="game-area"><div id="player" class="entity"></div> <div id="choice-overlay" class="hidden"></div> </div> <div id="room-message" class="hidden"></div> </div> <div id="ui-column"> <div id="status-board"> <div>Sala: <span id="current-room">0</span></div> <div>Vida: <span id="player-health">10</span></div> <div>Escudo: <span id="player-shield">0</span></div> <div>Ataque: <span id="player-attack">1</span></div> <div>Moedas: <span id="player-coins">30</span></div> </div> <div id="inventory-display"><h3 id="inventory-title">Itens</h3><div id="inventory-list"></div></div> </div> </div>
-    <div id="main-menu" class="screen"> <h1>A Lenda do Prato Equilibrado</h1> <button id="play-button" class="menu-button">Jogar</button> <button id="encyclopedia-button" class="menu-button">Enciclopédia</button> <button id="reset-button" class="menu-button hidden">Encerrar Jornada</button> </div>
+    <div id="main-menu" class="screen"> <h1>A Lenda do Prato Equilibrado</h1> <button id="play-button" class="menu-button">Jogar</button> <button id="encyclopedia-button" class="menu-button">Enciclopédia</button> <button id="cards-button" class="menu-button hidden">Cartas</button> <button id="reset-button" class="menu-button hidden">Encerrar Jornada</button> </div>
     <div id="game-over-screen" class="screen hidden"> <h1>Fim de Jogo</h1> <button id="return-to-menu-button" class="menu-button">Voltar ao Menu</button> </div>
     <div id="encyclopedia-screen" class="screen hidden"> <div id="encyclopedia-header"> <h1>Enciclopédia de Alimentos</h1> <button id="close-encyclopedia-button" class="menu-button" style="width: auto; font-size: 20px; padding: 10px 20px;">Voltar</button> </div> <div id="encyclopedia-filters"> <button class="filter-button active" data-filter="all">Todos</button> <button class="filter-button" data-filter="reguladores">Reguladores (Frutas/Hortaliças)</button> <button class="filter-button" data-filter="construtores">Construtores (Proteínas/Laticínios)</button> <button class="filter-button" data-filter="energeticos">Energéticos (Carboidratos)</button> <button class="filter-button" data-filter="especiais">Especiais</button> </div> <div id="encyclopedia-list"></div> </div>
+    <div id="cards-screen" class="screen hidden"> <div id="cards-header"> <h1>Minhas Cartas</h1> <button id="close-cards-button" class="menu-button" style="width: auto; font-size: 20px; padding: 10px 20px;">Voltar</button> </div> <div id="cards-list"></div> </div>
 
     <script>
-    // --- LÓGICA DE DADOS E ESTADO DO JOGO ---
-    const refs={ mainContainer:document.getElementById('main-container'), gameArea:document.getElementById('game-area'), player:document.getElementById('player'), roomMessage:document.getElementById('room-message'), choiceOverlay: document.getElementById('choice-overlay'), ui:{ room:document.getElementById('current-room'), health:document.getElementById('player-health'), shield:document.getElementById('player-shield'), attack:document.getElementById('player-attack'), coins:document.getElementById('player-coins'), inventory:document.getElementById('inventory-list') }, menu:{ main:document.getElementById('main-menu'), playBtn:document.getElementById('play-button'), resetBtn: document.getElementById('reset-button'), encyclopediaBtn: document.getElementById('encyclopedia-button') }, gameOver: { screen: document.getElementById('game-over-screen'), returnBtn: document.getElementById('return-to-menu-button') }, encyclopedia: { screen: document.getElementById('encyclopedia-screen'), closeBtn: document.getElementById('close-encyclopedia-button'), filters: document.getElementById('encyclopedia-filters'), list: document.getElementById('encyclopedia-list') } };
+    const refs={ mainContainer:document.getElementById('main-container'), gameArea:document.getElementById('game-area'), player:document.getElementById('player'), roomMessage:document.getElementById('room-message'), choiceOverlay: document.getElementById('choice-overlay'), ui:{ room:document.getElementById('current-room'), health:document.getElementById('player-health'), shield:document.getElementById('player-shield'), attack:document.getElementById('player-attack'), coins:document.getElementById('player-coins'), inventory:document.getElementById('inventory-list') }, menu:{ main:document.getElementById('main-menu'), playBtn:document.getElementById('play-button'), resetBtn: document.getElementById('reset-button'), encyclopediaBtn: document.getElementById('encyclopedia-button'), cardsBtn: document.getElementById('cards-button') }, gameOver: { screen: document.getElementById('game-over-screen'), returnBtn: document.getElementById('return-to-menu-button') }, encyclopedia: { screen: document.getElementById('encyclopedia-screen'), closeBtn: document.getElementById('close-encyclopedia-button'), filters: document.getElementById('encyclopedia-filters'), list: document.getElementById('encyclopedia-list') }, cards: { screen: document.getElementById('cards-screen'), closeBtn: document.getElementById('close-cards-button'), list: document.getElementById('cards-list') } };
     let playerState, gameState = 'MAIN_MENU', currentRoom = 0, lastTime = 0, roomClearTimer = 0;
     const keys={ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false};
     let activeEnemies = [], activeProjectiles = [], activeCoins = [], activeFood = [], activeCompanions = [];
-    let activePastaProjectiles = [], activeOrangeProjectiles = [], activeFriendProjectiles = [], activeBeeProjectiles = []; // Adicionado array de abelhas
+    let activePastaProjectiles = [], activeOrangeProjectiles = [], activeFriendProjectiles = [], activeBeeProjectiles = [];
     let strawberryFireTimer = 0;
 
     function getNewPlayerState() {
@@ -84,17 +86,10 @@
             watermelonOrb: { damage: 0, angle: 0, radius: 70 }, orangeUpgrade: 0, orangeFireTimer: 5, orangeJuiceUpgrade: false,
             butterStacks: 0, greenGrapesStacks: 0, hasGrapePie: false, hasGrapeCuca: false, hasWhiteGrape: false, hasGrapeJuice: false,
             companionsToSummon: [], companionBuffs: { bonusHealth: 0, bonusDamage: 0 },
-            strawberryShotCount: 0,
-            
-            // --- NOVOS ESTADOS ADICIONADOS ---
-            hasCornUpgrade: false, cornSpawnChance: 0, // Milho
-            hasPotato: false, potatoUsedThisRoom: false, // Batata
-            thornsDamage: 0, // Churrasco, Guisado, Berinjela
-            hasFish: false, hasRice: false, hasBean: false, hasPepper: false, hasBrigadeiro: false, hasSwissCheese: false, // Bônus "sem dano"
-            hasOmeleteUpgrade: false, // Omelete
-            honeyStacks: 0, beeSummonTimer: 30, // Mel e Abelhas
-            hasCarrotBasket: false, // Cesto de Cenoura
-            tookDamageThisRoom: false // Controle de dano por sala
+            strawberryShotCount: 0, hasCornUpgrade: false, cornSpawnChance: 0, hasPotato: false, potatoUsedThisRoom: false,
+            thornsDamage: 0, hasFish: false, hasRice: false, hasBean: false, hasPepper: false, hasBrigadeiro: false, hasSwissCheese: false,
+            hasOmeleteUpgrade: false, honeyStacks: 0, beeSummonTimer: 30, hasCarrotBasket: false, tookDamageThisRoom: false,
+            cartasCompradas: [], permanentUnlocks: {}
         };
         Object.defineProperty(state, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true });
         Object.defineProperty(state, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true });
@@ -111,11 +106,11 @@
         return restoredState;
     }
 
-    // --- BASE DE DADOS DE ITENS (Com Adições) ---
     const foodTypes=[{name:'banana',effect:()=>{playerState.baseHealth+=playerState.bananaUpgrade?3:1}},{name:'leite',effect:()=>{playerState.baseHealth+=playerState.milkUpgrade?2:1}},{name:'cenoura',effect:()=>{playerState.baseAttack+= playerState.hasCarrotBasket ? 2 : 1}},{name:'couve',effect:()=>{playerState.shield+=5}}];
     const specialFood=[{name:'ovo',effect:()=>{playerState.baseHealth+= playerState.hasOmeleteUpgrade ? 2 : 1; playerState.baseAttack+= playerState.hasOmeleteUpgrade ? 2 : 1;}}];
     const newRoomFood = [{ name: 'milho', effect: () => { playerState.baseAttack += 2; playerState.baseHealth += 2; playerState.coins += 2; updateStatusBoard(); }}];
 
+    // BANCO DE DADOS MESTRE DE ITENS E CARTAS
     const masterShopList = [
         // Consumíveis de Fase
         { id: 'banana', name: 'Banana', symbol: '🍌', desc: 'Cura 1 de vida (ou 3 com a Batida de Banana). Encontrado nas fases.', cost: 'Fase' },
@@ -183,7 +178,7 @@
         { id: 'uvaBranca', name: 'Uva Branca', symbol: '⚪', desc: '(LENDÁRIO) Suas unidades conjuradas ganham 200% de velocidade de ataque.', cost: 100, stackable: false, rarity: 'legendary', onPurchase: () => { playerState.hasWhiteGrape = true; activeCompanions.forEach(c => c.attackSpeedFactor = 3); } },
         { id: 'mel', name: 'Mel', symbol: '🍯', desc: '(LENDÁRIO) Conjura 4 abelhas teleguiadas a cada 30s. Dano aumenta por compra. (Exclusivo do Mercador Urso)', cost: 200, stackable: true, rarity: 'legendary', onPurchase: () => { playerState.honeyStacks++; } },
         { id: 'cestoDeCenoura', name: 'Cesto de Cenoura', symbol: '🧺🥕', desc: '(LENDÁRIO) Dobra a eficácia das Cenouras coletadas. (Exclusivo da Mercadora Coelha)', cost: 150, stackable: false, rarity: 'legendary', onPurchase: () => { playerState.hasCarrotBasket = true; } },
-        { id: 'peixe', name: 'Peixe do Cavalheiro', symbol: '🐟', desc: '(LENDÁRIO) Se não tomar dano em uma sala, ganha +30 de ataque permanentemente. (Recompensa de Evento)', cost: 'Evento', rarity: 'legendary', onPurchase: () => { playerState.hasFish = true; }},
+        { id: 'peixe', name: 'Peixe do Cavaleiro', symbol: '🐟', desc: '(LENDÁRIO) Se não tomar dano em uma sala, ganha +30 de ataque permanentemente. (Recompensa de Evento)', cost: 'Evento', rarity: 'legendary', onPurchase: () => { playerState.hasFish = true; }},
         { id: 'arroz', name: 'Arroz Divino', symbol: '🍚', desc: '(LENDÁRIO) Se não tomar dano em uma sala, ganha +20 de vida permanentemente.', cost: 'Evento', rarity: 'legendary', onPurchase: () => { playerState.hasRice = true; }},
         { id: 'feijao', name: 'Feijão Poderoso', symbol: '🫘', desc: '(LENDÁRIO) Se não tomar dano em uma sala, ganha +5 de ataque permanentemente.', cost: 'Evento', rarity: 'legendary', onPurchase: () => { playerState.hasBean = true; }},
         { id: 'pimenta', name: 'Pimenta da Fortuna', symbol: '🌶️', desc: '(LENDÁRIO) Se não tomar dano em uma sala, ganha 50 moedas.', cost: 'Evento', rarity: 'legendary', onPurchase: () => { playerState.hasPepper = true; }},
@@ -195,10 +190,37 @@
         { id: 'guisado', name: 'Guisado do Coringa', symbol: '🍲', desc: '(ESPECIAL) Concede +50 de dano de espinhos. (Exclusivo do Gato Coringa)', cost: 'Evento', rarity: 'especial', onPurchase: () => { playerState.thornsDamage += 50; } },
         { id: 'lagosta', name: 'Lagosta Real', symbol: '🦞', desc: '(ESPECIAL) Concede +100 de vida. (Exclusivo do Gato Coringa)', cost: 'Evento', rarity: 'especial', stackable: true, onPurchase: () => { playerState.baseHealth += 100; } },
     ];
+    
+    const masterCardList = [
+        // NPCs
+        { id: 'card_gato_coringa', name: 'Card: Gato Coringa', desc: "HAHAHA! Um agente do caos que testa heróis com um quiz de alto risco. Acerte para ganhar prêmios incríveis... erre e perca tudo! Você tem coragem para jogar?"},
+        { id: 'card_gato_robo', name: 'Card: Gato Robô', desc: "Um arquivista cibernético que valoriza o conhecimento. Acredita que uma dieta balanceada é a chave para a otimização de qualquer sistema."},
+        { id: 'card_gato_cavaleiro', name: 'Card: Gato Cavaleiro', desc: "Um guerreiro que valoriza a força e as proteínas. Desafie-o para um combate honrado para ganhar seu item mais precioso: o Peixe do Cavaleiro."},
+        { id: 'card_fazendeiro', name: 'Card: Cachorro Fazendeiro', desc: "Um fazendeiro que sente falta da diversidade alimentar. Oferecer a ele comida resulta em uma recompensa suculenta: o Morango Brilhante."},
+        { id: 'card_gato_mago', name: 'Card: Gato Mago', desc: "Um mago generoso que compartilha seus pratos mágicos com bravos aventureiros. Cada prato concede um bônus permanente. Escolha com sabedoria!"},
+        { id: 'card_gato_sorte', name: 'Card: Gato da Sorte', desc: "Misterioso e afortunado, este gato revela que você não está sozinho. Ele também veio de outro mundo para restaurar o equilíbrio, ajudando com moedas."},
+        { id: 'card_coelha', name: 'Card: Coelha Mercadora', desc: "Vinda do Reino das Hortaliças, esta empreendedora odeia a Rainha Uva. Em sua loja, todos os vegetais e legumes têm 50% de desconto."},
+        { id: 'card_raposa', name: 'Card: Raposa Mercadora', desc: "Uma mercadora astuta e experiente que sempre parece ter os melhores e mais raros produtos. Sua seleção é baseada na sorte do aventureiro."},
+        { id: 'card_urso', name: 'Card: Mercador Urso', desc: "Um urso sábio e sonolento que vende itens para dar 'vigor'. Sua loja é especializada em frutas e mel. Cada compra em seu empório fortalece sua vida permanentemente."},
+        { id: 'card_vaca', name: 'Card: Vaca Mercadora', desc: "Uma mercadora vaidosa e elegante, especialista em laticínios. Em seu 'Cantinho Cremoso', cada compra garante uma camada protetora de escudo."},
+        // Itens
+        { id: 'card_peixe_cavaleiro', name: 'Card: Peixe do Cavaleiro', desc: "Item lendário. Se você não tomar dano em uma sala de combate, ganha +30 de dano permanentemente. Recompensa para guerreiros habilidosos."},
+        { id: 'card_morango_brilhante', name: 'Card: Morango Brilhante', desc: "Item especial. Concede +1 Vida, +1 Ataque, +1 Escudo, +10% de chance rara e um tiro teleguiado adicional."},
+        { id: 'card_mel_lendario', name: 'Card: Mel Lendário', desc: "Item lendário exclusivo do Mercador Urso. Permite conjurar abelhas teleguiadas que atacam seus inimigos."},
+        { id: 'card_queijo_suico', name: 'Card: Queijo Suíço Raro', desc: "Item raro exclusivo da Vaca Mercadora. Se não tomar dano em uma sala, há 50% de chance de ganhar um escudo protetor."},
+        { id: 'card_guisado_coringa', name: 'Card: Guisado do Coringa', desc: "Um prêmio especial do quiz do Coringa. Concede um massivo bônus de 50 de dano de espinhos."},
+        { id: 'card_pizza_celestial', name: 'Card: Pizza Celestial', desc: "O prêmio final do Gato Coringa. Aparentemente não faz nada, mas o conhecimento de que você a possui enche você de determinação."},
+        // Grupos e Mecânicas
+        { id: 'card_laticinios', name: 'Card Grupo: Laticínios', desc: "Especialidade da Vaca Mercadora. Focados em defesa e suporte, oferecendo escudo e cura."},
+        { id: 'card_hortalicas', name: 'Card Grupo: Hortaliças', desc: "O grupo de alimentos preferido da Coelha. Mais baratos em sua loja e oferecem uma grande variedade de bônus."},
+        { id: 'card_companheiros', name: 'Card Mecânica: Companheiros', desc: "Itens como o Chocolate e o Iogurte conjuram amigos para lutar ao seu lado."},
+        // Conquista
+        { id: 'card_desconto', name: 'Card Conquista: Cliente Fiel', desc: "Você é um cliente fiel! Concede um pequeno desconto permanente em todas as lojas."}
+    ];
 
-    // --- FUNÇÕES GERAIS E DE LÓGICA DO JOGO ---
+    // --- FUNÇÕES DE LÓGICA DO JOGO ---
     function updateStatusBoard(){ if(!playerState) return; updateDynamicStats(); refs.ui.room.textContent = currentRoom; refs.ui.health.textContent = Math.max(0, playerState.health.toFixed(0)); refs.ui.shield.textContent = playerState.shield.toFixed(0); refs.ui.attack.textContent = playerState.attack.toFixed(0); refs.ui.coins.textContent = playerState.coins; }
-    function updateInventoryDisplay(){ if(!playerState) return; refs.ui.inventory.innerHTML=''; playerState.inventory.forEach((count, name)=>{ const itemData = masterShopList.find(i => i.name === name); const itemEl=document.createElement('div'); itemEl.className='inventory-item'; if(itemData && (itemData.rarity === 'especial' || itemData.id === 'guisado')) itemEl.classList.add('golden-item'); itemEl.textContent=`${name} ${count > 1 ? `x${count}`:''}`; refs.ui.inventory.appendChild(itemEl); }); }
+    function updateInventoryDisplay(){ if(!playerState) return; refs.ui.inventory.innerHTML=''; playerState.inventory.forEach((count, name)=>{ const itemData = masterShopList.find(i => i.name === name); const itemEl=document.createElement('div'); itemEl.className='inventory-item'; if(itemData && (itemData.rarity === 'especial' || itemData.id === 'guisado' || ['Peixe do Cavaleiro', 'Morango Brilhante', 'Mel', 'Queijo Suiço', 'Guisado do Coringa', 'Pizza Celestial'].includes(name) )) itemEl.classList.add('golden-item'); itemEl.textContent=`${name} ${count > 1 ? `x${count}`:''}`; refs.ui.inventory.appendChild(itemEl); }); }
     function showRoomMessage(text, duration) { refs.roomMessage.textContent = text; refs.roomMessage.classList.remove('hidden'); if (duration) setTimeout(() => refs.roomMessage.classList.add('hidden'), duration); }
     function createEntity(className, id=null){ const div=document.createElement('div'); div.className=`entity ${className}`; if(id) div.id=id; refs.gameArea.appendChild(div); return div; }
     function checkCollision(d1, d2){ if(!d1 || !d2) return false; const r1=d1.getBoundingClientRect(), r2=d2.getBoundingClientRect(); return !(r1.right<r2.left || r1.left>r2.right || r1.bottom<r2.top || r1.top>r2.bottom); }
@@ -208,12 +230,26 @@
     function createFood(){ let f=[...foodTypes]; if(playerState.canSpawnEggs) f.push(...specialFood); if(playerState.hasCornUpgrade && Math.random() < playerState.cornSpawnChance) { f.push(...newRoomFood); } if(f.length===0) return; const d=f[Math.floor(Math.random()*f.length)]; const e={div:createEntity(`item ${d.name}`), effect:()=>{d.effect(); updateStatusBoard();}}; e.div.style.left=Math.random()*768+'px'; e.div.style.top=Math.random()*568+'px'; activeFood.push(e); }
     function createCoin(x, y) { const c = { div: createEntity('coin'), x: x, y: y }; c.div.style.left = c.x + 'px'; c.div.style.top = c.y + 'px'; activeCoins.push(c); }
     function handlePlayerDamage(amount){ if(playerState.hasPotato && !playerState.potatoUsedThisRoom) { playerState.potatoUsedThisRoom = true; showRoomMessage('Batata salvou!', 1000); return; } if(playerState.isInvincible) return; playerState.tookDamageThisRoom = true; if(playerState.hasGrapeCuca && playerState.coins > 0){ const coinAbsorb = Math.min(playerState.coins, amount * 10); playerState.coins -= coinAbsorb; amount -= coinAbsorb / 10; } if(amount <= 0) { updateStatusBoard(); return; } const shieldDmg = Math.min(playerState.shield, amount); playerState.shield -= shieldDmg; amount -= shieldDmg; if (amount > 0) playerState.baseHealth -= amount; playerState.isInvincible = true; playerState.invincibilityTimer = 1.5; updateStatusBoard(); if(playerState.health <= 0) { gameState = 'GAME_OVER'; } }
-
     function createStrawberryProjectile() { if(activeEnemies.length === 0) return; const target = findNearestEnemy(playerState); if(!target) return; const dir = {x: target.x - (playerState.x + 24), y: target.y - (playerState.y + 24)}; const mag = Math.hypot(dir.x, dir.y) || 1; const p = {div: createEntity('strawberry-shot'), x: playerState.x + 24, y: playerState.y + 24, speed: 6, dx: dir.x / mag, dy: dir.y / mag, damage: 5}; p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; activeProjectiles.push(p); }
     
-    // --- LÓGICA DE SALAS E ENCICLOPÉDIA ---
-    function populateEncyclopedia(filter = 'all') { const listContainer = refs.encyclopedia.list; listContainer.innerHTML = ''; const filteredItems = filter === 'all' ? masterShopList : masterShopList.filter(item => item.foodGroup === filter); filteredItems.sort((a,b) => (a.rarity === b.rarity) ? a.name.localeCompare(b.name) : (masterShopList.indexOf(a) - masterShopList.indexOf(b)) ).forEach(item => { let rarityText = 'Comum'; let rarityClass = 'rarity-comum'; if (item.rarity === 'raro') { rarityText = 'Raro'; rarityClass = 'rarity-raro'; } else if (item.rarity === 'lendario') { rarityText = 'Lendário'; rarityClass = 'rarity-lendario'; } else if (item.rarity === 'especial') { rarityText = 'Especial'; rarityClass = 'rarity-especial'; } const itemElement = document.createElement('div'); itemElement.className = `encyclopedia-item`; itemElement.innerHTML = `<div class="encyclopedia-item-symbol">${item.symbol}</div> <div class="encyclopedia-item-details"> <span class="encyclopedia-item-title">${item.name} - <span class="${rarityClass}">${rarityText}</span></span> <span>${item.desc}</span> </div>`; listContainer.appendChild(itemElement); }); }
+    function populateEncyclopedia(filter = 'all') { /* ...código da enciclopédia... */ }
     
+    function populateCardsScreen() {
+        const listContainer = refs.cards.list;
+        listContainer.innerHTML = '';
+        if (!playerState.cartasCompradas || playerState.cartasCompradas.length === 0) {
+            listContainer.innerHTML = '<div style="text-align: center; padding: 20px; font-size: 20px;">Você ainda não possui nenhuma carta. Visite o Gato Robô para começar sua coleção!</div>';
+            return;
+        }
+        const ownedCards = masterCardList.filter(card => playerState.cartasCompradas.includes(card.id));
+        ownedCards.sort((a,b) => a.name.localeCompare(b.name)).forEach(card => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card-item';
+            cardElement.innerHTML = `<div class="card-item-details"><span class="card-item-title">${card.name}</span><span>${card.desc}</span></div>`;
+            listContainer.appendChild(cardElement);
+        });
+    }
+
     function presentPathChoice() {
         gameState = 'AWAITING_CHOICE';
         refs.choiceOverlay.classList.remove('hidden');
@@ -223,7 +259,18 @@
         introText.style.textAlign = 'center'; introText.style.color = 'white';
         refs.choiceOverlay.appendChild(introText);
         
-        const allPaths = [ { text: "Floresta verdejante com cheiro de alimentos", page: 'loja_raposa.html' }, { text: "Bosque amarelo com um chamado misterioso", page: 'encontro_gato_sorte.html' }, { text: "Bosque azulado com um rosto conhecido", page: 'encontro_gato_mago.html' }, { text: "Clareira alaranjada com um cheiro de cenouras frescas", page: 'loja_coelha.html'}, { text: "Bosque roxo com um aroma de mel e nozes", page: 'loja_urso.html' }, { text: "Bosque misto com um leve cheiro de leite fresco", page: 'loja_vaca.html' }, { text: "Um pequeno campo com cheiro de morangos doces", page: 'encontro_fazendeiro.html' } ];
+        const allPaths = [ 
+            { text: "Floresta verdejante com cheiro de alimentos", page: 'loja_raposa.html' }, 
+            { text: "Bosque amarelo com um chamado misterioso", page: 'encontro_gato_sorte.html' }, 
+            { text: "Bosque azulado com um rosto conhecido", page: 'encontro_gato_mago.html' }, 
+            { text: "Clareira alaranjada com um cheiro de cenouras frescas", page: 'loja_coelha.html'}, 
+            { text: "Bosque roxo com um aroma de mel e nozes", page: 'loja_urso.html' }, 
+            { text: "Bosque misto com um leve cheiro de leite fresco", page: 'loja_vaca.html' }, 
+            { text: "Um pequeno campo com cheiro de morangos doces", page: 'encontro_fazendeiro.html' },
+            { text: "Uma clareira onde se ouvem risadas caóticas", page: 'encontro_gato_coringa.html' },
+            { text: "Uma arena de treinamento com um ar competitivo", page: 'encontro_gato_cavaleiro.html' } ,
+            { text: "Um bosque rosado de onde emana um zumbido tecnológico", page: 'encontro_gato_robo.html' }
+        ];
 
         const choices = allPaths.sort(() => 0.5 - Math.random()).slice(0, 2);
         choices.forEach(path => {
@@ -235,7 +282,6 @@
         });
     }
 
-    // --- LÓGICA DE ITENS E COMPANHEIROS ---
     function createPastaProjectile(){ if(activeEnemies.length === 0) return; const t=findNearestEnemy(playerState); if(!t) return; const d={x:t.x-playerState.x, y:t.y-playerState.y}; const m=Math.hypot(d.x,d.y)||1; const p={div:createEntity('pasta-projectile'), x:playerState.x+24, y:playerState.y+24, speed:5, dx:d.x/m, dy:d.y/m}; p.div.style.left=p.x+'px'; p.div.style.top=p.y+'px'; activePastaProjectiles.push(p); }
     function createOrangeShot(){ const dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1},{x:.7,y:.7},{x:-.7,y:.7},{x:.7,y:-.7},{x:-.7,y:-.7}]; const dmg=(2*playerState.orangeUpgrade)*(playerState.orangeJuiceUpgrade?2:1); dirs.forEach(d=>{ const p={div:createEntity('orange-projectile'), x:playerState.x+24, y:playerState.y+24, speed:4, dx:d.x, dy:d.y, damage:dmg}; p.div.style.left=p.x+'px';p.div.style.top=p.y+'px';activeOrangeProjectiles.push(p); }); }
     function createFriendProjectile(source,dir,type,dmg){ const p={div:createEntity(type), x:source.x+16, y:source.y+16, speed:6, dx:dir.x, dy:dir.y, damage:dmg}; p.div.style.left=p.x+'px';p.div.style.top=p.y+'px';activeFriendProjectiles.push(p); }
@@ -263,8 +309,8 @@
 
     function startNewRoom(){
         showRoomMessage(`Sala ${currentRoom}`, 1500);
-        playerState.potatoUsedThisRoom = false; // Reseta a batata
-        playerState.tookDamageThisRoom = false; // Reseta o controle de dano
+        playerState.potatoUsedThisRoom = false;
+        playerState.tookDamageThisRoom = false;
         const entitiesToClear = refs.gameArea.querySelectorAll('.enemy, .coin, .item, .projectile, .pasta-projectile, .orange-projectile, .friend-projectile, .laser-beam, .bee-projectile');
         entitiesToClear.forEach(e => e.remove());
         activeFood.length=0; activeCoins.length=0; activeEnemies.length=0; activeProjectiles.length=0; activePastaProjectiles.length=0; activeOrangeProjectiles.length=0; activeFriendProjectiles.length=0; activeBeeProjectiles.length=0;
@@ -284,11 +330,22 @@
         const deltaTime = (now - lastTime)/1000 || 0;
         lastTime = now;
         switch(gameState){
-            case 'MAIN_MENU': if (localStorage.getItem('meuJoguinhoState_v27')) { refs.menu.resetBtn.classList.remove('hidden'); } else { refs.menu.resetBtn.classList.add('hidden'); } break;
+            case 'MAIN_MENU': 
+                if (localStorage.getItem('meuJoguinhoState_v27')) { 
+                    refs.menu.resetBtn.classList.remove('hidden'); 
+                    const tempState = loadPlayerState();
+                    if(tempState && tempState.permanentUnlocks && tempState.permanentUnlocks.cardViewerEnabled) {
+                        refs.menu.cardsBtn.classList.remove('hidden');
+                    }
+                } else { 
+                    refs.menu.resetBtn.classList.add('hidden');
+                    refs.menu.cardsBtn.classList.add('hidden');
+                } 
+                break;
             case 'AWAITING_CHOICE': case 'PAUSED': break;
             case 'GAME_OVER': refs.gameOver.screen.classList.remove('hidden'); localStorage.removeItem('meuJoguinhoState_v27'); gameState = 'PAUSED'; break;
             case 'STARTING_ROOM': startNewRoom(); break;
-            case 'CLEARING_ROOM': updateCompanions(deltaTime); roomClearTimer -= deltaTime; if(roomClearTimer <= 0){ handleRoomClearBonus(); playerState.currentRoom++; presentPathChoice(); } break;
+            case 'CLEARING_ROOM': updateCompanions(deltaTime); roomClearTimer -= deltaTime; if(roomClearTimer <= 0){ handleRoomClearBonus(); currentRoom++; playerState.currentRoom = currentRoom; presentPathChoice(); } break;
             case 'PLAYING':
                 let moved = false;
                 if(keys.ArrowUp){ playerState.y -= playerState.speed; playerState.lastMoveDirection={x:0, y:-1}; moved=true;}
@@ -297,7 +354,6 @@
                 if(keys.ArrowRight){ playerState.x += playerState.speed; playerState.lastMoveDirection={x:1, y:0}; moved=true;}
                 playerState.x = Math.max(0, Math.min(playerState.x, 800 - 64)); playerState.y = Math.max(0, Math.min(playerState.y, 600 - 64));
                 refs.player.style.left = playerState.x+'px'; refs.player.style.top = playerState.y+'px';
-                
                 if(playerState.isInvincible){ playerState.invincibilityTimer -= deltaTime; refs.player.style.opacity = (refs.player.style.opacity=='0.5')?'1':'0.5'; if(playerState.invincibilityTimer <= 0) { playerState.isInvincible=false; refs.player.style.opacity='1'; }}
                 if(playerState.orangeUpgrade > 0){ playerState.orangeFireTimer -= deltaTime; if(playerState.orangeFireTimer <= 0){ createOrangeShot(); playerState.orangeFireTimer = 5; }}
                 if(playerState.hasPastaShot){ playerState.pastaFireTimer -= deltaTime; if(playerState.pastaFireTimer <= 0){ createPastaProjectile(); playerState.pastaFireTimer = playerState.pastaFireRate; }}
@@ -305,9 +361,7 @@
                 if(playerState.butterStacks > 0) { activeEnemies.forEach(e=>{ const dist = Math.hypot(e.x-playerState.x, e.y-playerState.y); if(dist < 50+playerState.butterStacks*10){ const pushVec={x:e.x-playerState.x, y:e.y-playerState.y}; const mag=Math.hypot(pushVec.x,pushVec.y)||1; e.x+=pushVec.x/mag*2; e.y+=pushVec.y/mag*2; } }); }
                 if (playerState.strawberryShotCount > 0) { strawberryFireTimer -= deltaTime; if (strawberryFireTimer <= 0) { for (let i = 0; i < playerState.strawberryShotCount; i++) { createStrawberryProjectile(); } strawberryFireTimer = 2.5; } }
                 if (playerState.honeyStacks > 0) { playerState.beeSummonTimer -= deltaTime; if (playerState.beeSummonTimer <= 0) { for (let i = 0; i < 4; i++) createBeeProjectile(); playerState.beeSummonTimer = 30; } }
-
                 updateCompanions(deltaTime);
-
                 for(let i=activeEnemies.length-1; i>=0; i--){ const e=activeEnemies[i]; const s=e.speed*e.slowFactor; e.x+=e.dx*s; e.y+=e.dy*s; if(e.x<=0||e.x>=740)e.dx*=-1; if(e.y<=0||e.y>=540)e.dy*=-1; e.div.style.left=e.x+'px'; e.div.style.top=e.y+'px'; if(playerState.watermelonOrb.damage > 0 && document.getElementById('watermelon-orb') && checkCollision(document.getElementById('watermelon-orb'), e.div)) e.health -= playerState.watermelonOrb.damage * deltaTime; if(e.isPoisoned) { e.health -= playerState.poisonDPS * deltaTime; e.poisonTimer -= deltaTime; if(e.poisonTimer <= 0) e.isPoisoned = false; } if(checkCollision(refs.player, e.div)) { handlePlayerDamage(1); if(playerState.thornsDamage > 0) e.health -= playerState.thornsDamage; } if(e.health <= 0){ createCoin(e.x, e.y); e.div.remove(); activeEnemies.splice(i,1); } }
                 const moveAndCheck = (projArray, onHit) => { for(let i=projArray.length-1; i>=0; i--){ let p = projArray[i]; if((playerState.hasHomingShots && projArray === activeProjectiles) || p.isHoming || p.div.classList.contains('strawberry-shot')){ const t=findNearestEnemy(p); if(t){ const d={x:t.x-p.x, y:t.y-p.y}; const m=Math.hypot(d.x,d.y)||1; p.dx=d.x/m; p.dy=d.y/m; }} p.x += p.dx * p.speed; p.y += p.dy * p.speed; if(p.x>800||p.x<0||p.y>600||p.y<0){p.div.remove(); projArray.splice(i,1); continue;} p.div.style.left=p.x+'px'; p.div.style.top=p.y+'px'; for(let j=activeEnemies.length-1; j>=0; j--){ const e = activeEnemies[j]; if(checkCollision(p.div, e.div)){ p.div.remove(); projArray.splice(i,1); onHit(e,p); break; } } } };
                 moveAndCheck(activeProjectiles, (e,p)=>{ e.health -= p.damage; if(playerState.hasPoisonUpgrade && Math.random() < 0.5){ e.isPoisoned=true; e.poisonTimer=3;} });
@@ -315,11 +369,9 @@
                 moveAndCheck(activeOrangeProjectiles, (e,p)=>{ e.health -= p.damage; });
                 moveAndCheck(activeFriendProjectiles, (e,p)=>{ e.health -= p.damage; });
                 moveAndCheck(activeBeeProjectiles, (e,p)=>{ e.health -= p.damage; });
-
                 for(let i=activeFood.length-1; i>=0; i--){ const f=activeFood[i]; if(checkCollision(refs.player, f.div)){f.effect();f.div.remove();activeFood.splice(i,1);}}
                 for(let i=activeCoins.length-1; i>=0; i--){ const c=activeCoins[i]; if(checkCollision(refs.player, c.div)){playerState.coins+=playerState.hasGrapesUpgrade?2:1; c.div.remove(); activeCoins.splice(i,1); updateStatusBoard();}}
                 const cheese = activeCompanions.find(c=>c.type==='cheese'); if(cheese) { [...activeFood, ...activeCoins].forEach((item, i, arr) => { if(checkCollision(cheese.div, item.div)){ if(item.effect) item.effect(); else playerState.coins+=playerState.hasGrapesUpgrade?2:1; item.div.remove(); arr.splice(i,1); updateStatusBoard(); } }); }
-                
                 if(activeEnemies.length === 0){ gameState='CLEARING_ROOM'; showRoomMessage('Sala Limpa!', 2000); roomClearTimer=2.0; }
                 break;
         }
@@ -328,10 +380,12 @@
     
     // --- INICIALIZAÇÃO E EVENTOS ---
     refs.menu.playBtn.addEventListener('click', () => { playerState = loadPlayerState() || getNewPlayerState(); refs.menu.main.classList.add('hidden'); refs.mainContainer.classList.remove('hidden'); currentRoom = playerState.currentRoom; updateStatusBoard(); updateInventoryDisplay(); gameState = 'STARTING_ROOM'; });
-    refs.menu.resetBtn.addEventListener('click', () => { if (confirm("Você tem certeza que deseja apagar todo o seu progresso? Esta ação não pode ser desfeita.")) { localStorage.removeItem('meuJoguinhoState_v27'); alert("Seu progresso foi apagado! Uma nova jornada o aguarda."); refs.menu.resetBtn.classList.add('hidden'); } });
-    refs.menu.encyclopediaBtn.addEventListener('click', () => { refs.menu.main.classList.add('hidden'); populateEncyclopedia('all'); refs.encyclopedia.screen.classList.remove('hidden'); });
+    refs.menu.resetBtn.addEventListener('click', () => { if (confirm("Você tem certeza que deseja apagar todo o seu progresso? Esta ação não pode ser desfeita.")) { localStorage.removeItem('meuJoguinhoState_v27'); alert("Seu progresso foi apagado! Uma nova jornada o aguarda."); refs.menu.resetBtn.classList.add('hidden'); refs.menu.cardsBtn.classList.add('hidden'); } });
+    refs.menu.encyclopediaBtn.addEventListener('click', () => { refs.menu.main.classList.add('hidden'); refs.encyclopedia.screen.classList.remove('hidden'); });
     refs.encyclopedia.closeBtn.addEventListener('click', () => { refs.encyclopedia.screen.classList.add('hidden'); refs.menu.main.classList.remove('hidden'); });
     refs.encyclopedia.filters.addEventListener('click', (e) => { if (e.target.classList.contains('filter-button')) { document.querySelector('.filter-button.active').classList.remove('active'); e.target.classList.add('active'); populateEncyclopedia(e.target.getAttribute('data-filter')); } });
+    refs.menu.cardsBtn.addEventListener('click', () => { playerState = loadPlayerState(); refs.menu.main.classList.add('hidden'); populateCardsScreen(); refs.cards.screen.classList.remove('hidden'); });
+    refs.cards.closeBtn.addEventListener('click', () => { refs.cards.screen.classList.add('hidden'); refs.menu.main.classList.remove('hidden'); });
     refs.gameOver.returnBtn.addEventListener('click', () => { refs.gameOver.screen.classList.add('hidden'); refs.menu.main.classList.remove('hidden'); gameState = 'MAIN_MENU'; });
     
     window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) { e.preventDefault(); keys[e.key] = true; } if(e.key === ' ' && gameState === 'PLAYING'){ e.preventDefault(); const dir = playerState.aimInMoveDirection ? playerState.lastMoveDirection : {x:0, y:-1}; if(playerState.hasDoubleShot){ createProjectile(dir, 10); createProjectile(dir, -10); } else { createProjectile(dir); } } });

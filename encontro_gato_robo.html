@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Santuário do Gato Robô</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        .hidden { display: none !important; }
+        #main-container { display: flex; gap: 20px; align-items: flex-start; }
+        #game-container { position: relative; }
+        #game-area { width: 800px; height: 600px; border: 2px solid #fff; background: url('imagens/bosque_rosa.png') center/cover no-repeat; position: relative; overflow: hidden; }
+        .entity { position: absolute; background-size: contain; background-repeat: no-repeat; cursor: pointer; }
+        #player { width: 64px; height: 64px; background-image: url('imagens/gatinho_pixel_32x32.png'); z-index: 10; cursor: default; }
+        #robot-cat { width: 96px; height: 96px; background-image: url('imagens/gato_robo.png'); z-index: 9; }
+        #cookie-machine { width: 80px; height: 120px; background-image: url('imagens/maquina_biscoito.png'); z-index: 9; }
+        #card-machine { width: 80px; height: 120px; background-image: url('imagens/maquina_cartas.png'); z-index: 9; }
+        #ui-column { display: flex; flex-direction: column; align-items: center; }
+        #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+        #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+        #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+        .inventory-item { padding: 5px; border-bottom: 1px solid #444; }
+        .golden-item { color: #f1c40f; font-weight: bold; }
+        #dialogue-box { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 750px; padding: 20px; background-color: rgba(10, 20, 40, 0.9); border: 3px solid #00c2ff; border-radius: 10px; box-sizing: border-box; text-align: center; z-index: 200; }
+        #dialogue-text { font-size: 22px; margin: 0 0 20px 0; min-height: 50px; line-height: 1.4; white-space: pre-wrap; }
+        #dialogue-options button { font-size: 18px; padding: 10px 20px; border: 2px solid #00c2ff; background-color: #2c3e50; color: white; border-radius: 5px; cursor: pointer; margin: 5px; }
+        #dialogue-options button:hover { background-color: #4a6581; }
+        #dialogue-options button:disabled { background-color: #222; color: #555; cursor: not-allowed; border-color: #555; }
+        #proceed-button { position: absolute; bottom: 20px; right: 20px; padding: 15px 30px; font-size: 22px; cursor: pointer; background-color:#27ae60; border: 2px solid #2ecc71; color: white; border-radius: 10px; z-index: 150; }
+    </style>
+</head>
+<body>
+    <div id="main-container"> 
+        <div id="game-container"> 
+            <div id="game-area">
+                <div id="player" class="entity"></div>
+                <div id="robot-cat" class="entity"></div>
+                <div id="cookie-machine" class="entity"></div>
+                <div id="card-machine" class="entity"></div>
+                
+                <div id="dialogue-box" class="hidden"> 
+                    <p id="dialogue-text"></p>
+                    <div id="dialogue-options"></div>
+                </div>
+                
+                <button id="proceed-button">Ir para a próxima sala</button>
+            </div>
+        </div> 
+        <div id="ui-column"> 
+            <div id="status-board">
+                <div>Sala: <span id="current-room"></span></div> 
+                <div>Vida: <span id="player-health"></span></div> 
+                <div>Escudo: <span id="player-shield"></span></div> 
+                <div>Ataque: <span id="player-attack"></span></div> 
+                <div>Moedas: <span id="player-coins"></span></div> 
+            </div> 
+            <div id="inventory-display"><h3 id="inventory-title">Inventário</h3><div id="inventory-list"></div></div> 
+        </div> 
+    </div>
+
+    <script>
+    // --- ESTADO DO JOGADOR ---
+    function getNewPlayerState() {
+        const state = { 
+            x: 385, y: 520, speed: 4, baseHealth: 10, bonusHealth: 0, baseAttack: 1, bonusAttack: 0, shield: 0, coins: 300, 
+            inventory: new Map(), currentRoom: 0, 
+            cartasCompradas: [], 
+            npcsEncontrados: [],
+            totalCompras: 0,
+            specialDishes: [],
+            coelhaDialogueDone: false, raposaDialogueDone: false, ursoDialogueDone: false,
+            vacaDialogueDone: false, vacaGaveGold: false,
+            permanentUnlocks: {} // Adicionado para compatibilidade
+        };
+        Object.defineProperty(state, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true });
+        Object.defineProperty(state, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true });
+        return state;
+    }
+    
+    // CORREÇÃO: Chave do save padronizada para 'v27' para corresponder ao jogo principal.
+    const SAVE_KEY = 'meuJoguinhoState_v27';
+
+    function savePlayerState(state) {
+        const savableState = { ...state, inventory: Array.from(state.inventory.entries()) };
+        localStorage.setItem(SAVE_KEY, JSON.stringify(savableState));
+    }
+
+    function loadPlayerState() {
+        const savedStateJSON = localStorage.getItem(SAVE_KEY);
+        if (!savedStateJSON) return null;
+        const loadedObject = JSON.parse(savedStateJSON);
+        const baseState = getNewPlayerState();
+        const restoredState = { ...baseState, ...loadedObject, inventory: new Map(loadedObject.inventory) };
+        Object.defineProperty(restoredState, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true });
+        Object.defineProperty(restoredState, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true });
+        return restoredState;
+    };
+
+    const refs = {
+        player: document.getElementById('player'), robotCat: document.getElementById('robot-cat'),
+        cookieMachine: document.getElementById('cookie-machine'), cardMachine: document.getElementById('card-machine'),
+        gameArea: document.getElementById('game-area'), dialogueBox: document.getElementById('dialogue-box'), 
+        dialogueText: document.getElementById('dialogue-text'), dialogueOptions: document.getElementById('dialogue-options'),
+        proceedButton: document.getElementById('proceed-button'),
+        ui: { room: document.getElementById('current-room'), health: document.getElementById('player-health'), shield: document.getElementById('player-shield'), attack: document.getElementById('player-attack'), coins: document.getElementById('player-coins'), inventory: document.getElementById('inventory-list') }
+    };
+    
+    let playerState = loadPlayerState() || getNewPlayerState();
+    let gameState = 'IDLE';
+    let cookiesBoughtThisRoom = 0;
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+
+    const masterCardList = [
+        { id: 'card_gato_coringa', name: 'Card: Gato Coringa', desc: "HAHAHA! Um agente do caos que testa heróis com um quiz de alto risco. Acerte para ganhar prêmios incríveis... erre e perca tudo! Você tem coragem para jogar?", unlockCondition: (s) => s.npcsEncontrados.includes('gatoCoringa') },
+        { id: 'card_gato_robo', name: 'Card: Gato Robô', desc: "Um arquivista cibernético que valoriza o conhecimento. Acredita que uma dieta balanceada é a chave para a otimização de qualquer sistema.", unlockCondition: (s) => s.npcsEncontrados.includes('gatoRobo') },
+        { id: 'card_gato_cavaleiro', name: 'Card: Gato Cavaleiro', desc: "Um guerreiro que valoriza a força e as proteínas. Desafie-o para um combate honrado para ganhar seu item mais precioso: o Peixe do Cavaleiro.", unlockCondition: (s) => s.npcsEncontrados.includes('gatoCavaleiro') },
+        { id: 'card_fazendeiro', name: 'Card: Cachorro Fazendeiro', desc: "Um fazendeiro que sente falta da diversidade alimentar. Oferecer a ele comida resulta em uma recompensa suculenta: o Morango Brilhante.", unlockCondition: (s) => s.npcsEncontrados.includes('fazendeiro') },
+        { id: 'card_gato_mago', name: 'Card: Gato Mago', desc: "Um mago generoso que compartilha seus pratos mágicos com bravos aventureiros. Cada prato concede um bônus permanente. Escolha com sabedoria!", unlockCondition: (s) => s.npcsEncontrados.includes('gatoMago') },
+        { id: 'card_gato_sorte', name: 'Card: Gato da Sorte', desc: "Misterioso e afortunado, este gato revela que você não está sozinho. Ele também veio de outro mundo para restaurar o equilíbrio, ajudando com moedas.", unlockCondition: (s) => s.npcsEncontrados.includes('gatoSorte') },
+        { id: 'card_coelha', name: 'Card: Coelha Mercadora', desc: "Vinda do Reino das Hortaliças, esta empreendedora odeia a Rainha Uva. Em sua loja, todos os vegetais e legumes têm 50% de desconto.", unlockCondition: (s) => s.npcsEncontrados.includes('coelha') },
+        { id: 'card_raposa', name: 'Card: Raposa Mercadora', desc: "Uma mercadora astuta e experiente que sempre parece ter os melhores e mais raros produtos. Sua seleção é baseada na sorte do aventureiro.", unlockCondition: (s) => s.npcsEncontrados.includes('raposa') },
+        { id: 'card_urso', name: 'Card: Mercador Urso', desc: "Um urso sábio e sonolento que vende itens para dar 'vigor'. Sua loja é especializada em frutas e mel. Cada compra em seu empório fortalece sua vida permanentemente.", unlockCondition: (s) => s.npcsEncontrados.includes('urso') },
+        { id: 'card_vaca', name: 'Card: Vaca Mercadora', desc: "Uma mercadora vaidosa e elegante, especialista em laticínios. Em seu 'Cantinho Cremoso', cada compra garante uma camada protetora de escudo.", unlockCondition: (s) => s.npcsEncontrados.includes('vaca') },
+        { id: 'card_peixe_cavaleiro', name: 'Card: Peixe do Cavaleiro', desc: "Item lendário. Se você não tomar dano em uma sala de combate, ganha +30 de dano permanentemente. Recompensa para guerreiros habilidosos.", unlockCondition: (s) => s.inventory.has('Peixe do Cavaleiro') },
+        { id: 'card_morango_brilhante', name: 'Card: Morango Brilhante', desc: "Item especial. Concede +1 Vida, +1 Ataque, +1 Escudo, +10% de chance rara e um tiro teleguiado adicional. Uma explosão de nutrientes!", unlockCondition: (s) => s.inventory.has('Morango Brilhante') },
+        { id: 'card_mel_lendario', name: 'Card: Mel Lendário', desc: "Item lendário exclusivo do Mercador Urso. Permite conjurar abelhas teleguiadas que atacam seus inimigos. Quanto mais mel, mais forte o enxame.", unlockCondition: (s) => s.inventory.has('Mel') },
+        { id: 'card_queijo_suico', name: 'Card: Queijo Suíço Raro', desc: "Item raro exclusivo da Vaca Mercadora. Se não tomar dano em uma sala, há 50% de chance de ganhar um escudo protetor.", unlockCondition: (s) => s.inventory.has('Queijo Suiço') },
+        { id: 'card_guisado_coringa', name: 'Card: Guisado do Coringa', desc: "Um prêmio especial do quiz do Coringa. Concede um massivo bônus de 50 de dano de espinhos. Perfeito para quem gosta de viver perigosamente.", unlockCondition: (s) => s.inventory.has('Guisado do Coringa') },
+        { id: 'card_pizza_celestial', name: 'Card: Pizza Celestial', desc: "O prêmio final do Gato Coringa. Aparentemente não faz nada, mas o conhecimento de que você a possui enche você de determinação... e satisfação.", unlockCondition: (s) => s.inventory.has('Pizza Celestial') },
+        { id: 'card_laticinios', name: 'Card Grupo: Laticínios', desc: "Especialidade da Vaca Mercadora. Itens como Queijo Suíço, Leite e Iogurte são focados em defesa e suporte, oferecendo escudo e cura.", unlockCondition: (s) => s.inventory.has('Queijo Suiço') || s.inventory.has('Caixa de Leite') },
+        { id: 'card_hortalicas', name: 'Card Grupo: Hortaliças', desc: "O grupo de alimentos preferido da Coelha. Itens como Alface, Brócolis e Milho são mais baratos em sua loja e oferecem uma grande variedade de bônus.", unlockCondition: (s) => s.inventory.has('Alface') && s.inventory.has('Milho') },
+        { id: 'card_companheiros', name: 'Card Mecânica: Companheiros', desc: "Itens como o Chocolate e o Iogurte conjuram amigos para lutar ao seu lado. Itens como o Doce de Leite podem fortalecê-los ainda mais!", unlockCondition: (s) => s.companionsToSummon && s.companionsToSummon.length > 0 },
+        { id: 'card_desconto', name: 'Card Conquista: Cliente Fiel', desc: "Você é um cliente fiel! A Rainha Uva odeia pechinchas, mas o livre mercado sempre vence. Este cartão concede um pequeno desconto permanente em todas as lojas.", unlockCondition: (s) => s.totalCompras >= 30 },
+    ];
+
+    function updateUI() {
+        const ui = refs.ui;
+        if (!playerState) return; // Checagem de segurança
+        ui.room.textContent = playerState.currentRoom; ui.health.textContent = playerState.health.toFixed(0); ui.shield.textContent = playerState.shield.toFixed(0); ui.attack.textContent = playerState.attack.toFixed(0); ui.coins.textContent = playerState.coins;
+        ui.inventory.innerHTML = '';
+        playerState.inventory.forEach((count, name) => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'inventory-item';
+            if (['Peixe do Cavaleiro', 'Morango Brilhante', 'Mel', 'Queijo Suiço', 'Guisado do Coringa', 'Pizza Celestial'].includes(name)) itemEl.classList.add('golden-item');
+            itemEl.textContent = `${name} ${count > 1 ? `x${count}`: ''}`;
+            ui.inventory.appendChild(itemEl);
+        });
+    }
+
+    function checkCollision(div1, div2, inset = 0) { const r1 = div1.getBoundingClientRect(); const r2 = div2.getBoundingClientRect(); const sr2 = { left: r2.left - inset, right: r2.right + inset, top: r2.top - inset, bottom: r2.bottom + inset }; return !(r1.right < sr2.left || r1.left > sr2.right || r1.bottom < sr2.top || r1.top > sr2.bottom); }
+
+    function showDialogue(text, options = []) {
+        gameState = 'DIALOGUE'; refs.dialogueText.textContent = text; refs.dialogueOptions.innerHTML = '';
+        options.forEach(option => {
+            const button = document.createElement('button'); button.textContent = option.text;
+            if (option.disabled) button.disabled = true;
+            button.onclick = () => { if(option.action) option.action(); };
+            refs.dialogueOptions.appendChild(button);
+        });
+        refs.dialogueBox.classList.remove('hidden');
+    }
+
+    function hideDialogue() { refs.dialogueBox.classList.add('hidden'); gameState = 'IDLE'; }
+
+    function interactWithRobotCat() {
+        if (gameState !== 'IDLE') return;
+        showDialogue("Olá, unidade orgânica. Análise: você busca otimização. A Rainha Uva prega força através da restrição, um paradigma falho. A verdadeira eficiência vem do conhecimento e de uma dieta balanceada. Use minhas máquinas para expandir seus dados.", [{ text: "Análise interessante.", action: hideDialogue }]);
+    }
+
+    // CORREÇÃO: Lógica da máquina de biscoitos simplificada para evitar bugs de diálogo.
+    function interactWithCookieMachine() {
+        if (gameState !== 'IDLE' && gameState !== 'DIALOGUE') return;
+
+        if (cookiesBoughtThisRoom >= 10) {
+            showDialogue("Alerta de sistema: consumo excessivo de açúcares processados detectado. Uma dieta balanceada requer moderação. Volte mais tarde.", [{ text: "Entendido.", action: hideDialogue }]);
+            return;
+        }
+
+        const buyAction = () => {
+            if (playerState.coins >= 1) {
+                playerState.coins -= 1;
+                playerState.totalCompras++;
+                playerState.inventory.set('Biscoito', (playerState.inventory.get('Biscoito') || 0) + 1);
+                cookiesBoughtThisRoom++;
+                updateUI();
+                // Após a compra, simplesmente reabre o diálogo principal da máquina.
+                interactWithCookieMachine(); 
+            } else {
+                showDialogue("Moedas insuficientes.", [{ text: "Fechar", action: hideDialogue }]);
+            }
+        };
+
+        const options = [
+            { text: `Comprar Biscoito (1 moeda)`, action: buyAction },
+            { text: "Sair", action: hideDialogue }
+        ];
+
+        // Desabilita o botão de compra se não houver dinheiro.
+        if (playerState.coins < 1) options[0].disabled = true;
+
+        showDialogue(`Dispensador de Biscoitos. Cada unidade custa 1 moeda. Você já comprou ${cookiesBoughtThisRoom}/10.`, options);
+    }
+
+    function interactWithCardMachine() {
+        if (gameState !== 'IDLE') return;
+        const availableCards = masterCardList.filter(card => !playerState.cartasCompradas.includes(card.id) && card.unlockCondition(playerState));
+        if (availableCards.length === 0) {
+            showDialogue("Processando... Nenhum novo pacote de dados disponível para seu perfil no momento. Continue sua jornada e colete mais dados (itens e experiências) para desbloquear novos cards.", [{ text: "Compreendido.", action: hideDialogue }]);
+            return;
+        }
+        const cardOptions = availableCards.map(card => ({
+            text: `Comprar '${card.name}' (100 moedas)`,
+            disabled: playerState.coins < 100,
+            action: () => buyCard(card)
+        }));
+        cardOptions.push({ text: "Sair", action: hideDialogue });
+        showDialogue("Bem-vindo ao terminal de conhecimento. Pacotes de dados disponíveis para download:", cardOptions);
+    }
+
+    function buyCard(card) {
+        if (playerState.coins >= 100) {
+            playerState.coins -= 100;
+            playerState.cartasCompradas.push(card.id);
+            if (!playerState.permanentUnlocks) playerState.permanentUnlocks = {};
+            playerState.permanentUnlocks.cardViewerEnabled = true; // Habilita o botão no menu principal
+            updateUI();
+            showDialogue(`Download completo!\n\n${card.name}\n"${card.desc}"`, [
+                { text: "Adquirir outro", action: () => interactWithCardMachine() },
+                { text: "Sair", action: hideDialogue }
+            ]);
+        }
+    }
+
+    function gameLoop() {
+        if (gameState === 'IDLE') {
+            if (keys.ArrowUp) playerState.y -= playerState.speed; if (keys.ArrowDown) playerState.y += playerState.speed;
+            if (keys.ArrowLeft) playerState.x -= playerState.speed; if (keys.ArrowRight) playerState.x += playerState.speed;
+            playerState.x = Math.max(0, Math.min(playerState.x, 800 - 64));
+            playerState.y = Math.max(0, Math.min(playerState.y, 600 - 64));
+            refs.player.style.left = `${playerState.x}px`;
+            refs.player.style.top = `${playerState.y}px`;
+        }
+        requestAnimationFrame(gameLoop);
+    }
+    
+    function initRoom() {
+        playerState.x = 368; playerState.y = 450;
+        refs.robotCat.style.left = `352px`; refs.robotCat.style.top = `250px`;
+        refs.cookieMachine.style.left = '150px'; refs.cookieMachine.style.top = '250px';
+        refs.cardMachine.style.left = '570px'; refs.cardMachine.style.top = '250px';
+        if (!playerState.npcsEncontrados.includes('gatoRobo')) {
+            playerState.npcsEncontrados.push('gatoRobo');
+        }
+        
+        refs.robotCat.addEventListener('click', interactWithRobotCat);
+        refs.cookieMachine.addEventListener('click', interactWithCookieMachine);
+        refs.cardMachine.addEventListener('click', interactWithCardMachine);
+        refs.proceedButton.addEventListener('click', () => { savePlayerState(playerState); window.location.href = 'jogosalas.html'; });
+        document.addEventListener('keydown', e => { if (keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+        window.addEventListener('keyup', e => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+        
+        updateUI(); 
+        gameLoop();
+    }
+    initRoom();
+    </script>
+</body>
+</html>
