@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mercado do Urso</title>
     <style>
-        /* Estilos CSS (modificados para a nova sala) */
+        /* Estilos CSS */
         body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
         .hidden { display: none !important; }
         #main-container { display: flex; gap: 20px; align-items: flex-start; }
@@ -14,7 +14,7 @@
         .entity { position: absolute; background-size: contain; background-repeat: no-repeat; }
         #player { width: 64px; height: 64px; background-image: url('imagens/gatinho_pixel_32x32.png'); z-index: 10; }
         #npc-urso { width: 128px; height: 128px; background-image: url('imagens/urso_mercador.png'); top: 230px; left: 450px; cursor: pointer; }
-        #mercado-stall { width: 280px; height: 280px; background-image: url('imagens/mercado_urso.png'); top: 100px; left: 140px; cursor: pointer; }
+        #mercado-stall { width: 280px; height: 280px; background-image: url('imagens/mercado_urso.png'); top: 120px; left: 140px; cursor: pointer; }
         #ui-column { display: flex; flex-direction: column; align-items: center; }
         #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
         #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
@@ -26,21 +26,25 @@
         #shop-close-button { position: absolute; top: 10px; right: 15px; font-size: 24px; color: white; background: none; border: none; cursor: pointer; }
         #shop-controls { display: flex; gap: 15px; margin-top: 20px;}
         #shop-title { font-size: 36px; margin-bottom: 20px; }
-        
-        /* CORREÇÃO DO BUG DE UI: Adicionado max-height e overflow-y */
         #shop-items { 
             display: flex; 
             flex-wrap: wrap; 
             justify-content: center; 
             gap: 20px; 
             max-width: 750px; 
-            max-height: 400px; /* Limita a altura para aprox. 3 fileiras */
-            overflow-y: auto;   /* Adiciona barra de rolagem se necessário */
-            padding: 10px;      /* Espaçamento interno */
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
         }
+        .shop-item { width: 140px; height: 140px; padding: 5px; box-sizing: border-box; border: 3px solid #ddd; background-color: #444; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; transition: all 0.2s; border-radius: 8px; }
+        
+        /* --- CORES DAS BORDAS CORRIGIDAS --- */
+        .shop-item.comum { border-color: #3498db; }      /* Azul */
+        .shop-item.incomum { border-color: #2ecc71; }    /* Verde */
+        .shop-item.raro { border-color: #9b59b6; }      /* Roxo */
+        .shop-item.lendario { border-color: #e74c3c; }  /* Vermelho */
+        .shop-item.especial { border-color: #f1c40f; box-shadow: 0 0 15px #f1c40f; } /* Dourado */
 
-        .shop-item { width: 140px; height: 140px; padding: 5px; box-sizing: border-box; border: 2px solid #ddd; background-color: #444; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; transition: all 0.2s; border-radius: 8px; }
-        .shop-item.comum { border-color: #ecf0f1; } .shop-item.rare { border-color: #3498db; } .shop-item.legendary { border-color: #9b59b6; } .shop-item.especial { border-color: #f1c40f; box-shadow: 0 0 15px #f1c40f; }
         .shop-item:hover { background-color: #555; transform: scale(1.05); }
         .shop-item.disabled { background-color: #222; color: #555; cursor: not-allowed; opacity: 0.6; }
         .shop-item-symbol { font-size: 40px; } .shop-item-name { font-size: 16px; font-weight: bold; margin-top: 5px;}
@@ -91,7 +95,7 @@
     </div>
 
     <script>
-    // --- LÓGICA DE DADOS (ATUALIZADA) ---
+    // --- FUNÇÕES DE ESTADO DO JOGADOR RESTAURADAS ---
     function getNewPlayerState() {
         const state = {
             x: 385, y: 520, speed: 4, baseHealth: 10, bonusHealth: 0, baseAttack: 1, bonusAttack: 0,
@@ -110,10 +114,10 @@
             thornsDamage: 0,
             hasFish: false, hasRice: false, hasBean: false, hasPepper: false, hasBrigadeiro: false, hasSwissCheese: false,
             hasOmeleteUpgrade: false,
-            honeyStacks: 0, beeSummonTimer: 30,
+            honeyStacks: 0,
             hasCarrotBasket: false,
             tookDamageThisRoom: false,
-            ursoDialogueDone: false // Específico desta sala
+            ursoDialogueDone: false
         };
         Object.defineProperty(state, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true });
         Object.defineProperty(state, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true });
@@ -135,61 +139,58 @@
     function advanceUrsoDialogue() { if (dialogueIndex < ursoInitialDialogues.length) { refs.dialogue.text.textContent = ursoInitialDialogues[dialogueIndex]; dialogueIndex++; } else { refs.dialogue.box.classList.add('hidden'); gameState = 'PLAYING'; playerState.ursoDialogueDone = true; playerState.y += 20; } }
     function startUrsoDialogue() { gameState = 'PAUSED'; refs.dialogue.box.classList.remove('hidden'); if (!playerState.ursoDialogueDone) { dialogueIndex = 0; refs.dialogue.nextButton.textContent = 'Próximo >'; refs.dialogue.nextButton.onclick = advanceUrsoDialogue; advanceUrsoDialogue(); } else { const randomLine = ursoRepeatDialogues[Math.floor(Math.random() * ursoRepeatDialogues.length)]; refs.dialogue.text.textContent = randomLine; refs.dialogue.nextButton.textContent = 'Fechar'; refs.dialogue.nextButton.onclick = () => { refs.dialogue.box.classList.add('hidden'); gameState = 'PLAYING'; playerState.y += 20; }; } }
 
-    // --- LÓGICA DO MERCADO (ATUALIZADA) ---
+    // --- LISTA DE ITENS COMPLETA E CORRIGIDA ---
     const masterShopList = [
         // Itens Comuns
-        { id: 'milhoUpgrade', name: 'Milho', symbol: '🌽', desc: 'Milhos passam a aparecer nas fases (+1% de chance por compra, máx 20).', cost: 25, stackable: true, maxStacks: 20, onPurchase: () => { playerState.hasCornUpgrade = true; playerState.cornSpawnChance += 0.01; } },
-        { id: 'alface', name: 'Alface', symbol: '🥬', desc: 'Concede 30 de escudo.', cost: 30, stackable: true, onPurchase: () => { playerState.shield += 30 } },
-        { id: 'laranja', name: 'Laranja', symbol: '🍊', desc: 'Dispara 5 projéteis a cada 5s (+2 de dano por compra).', cost: 35, stackable: true, onPurchase: () => { playerState.orangeUpgrade += 1 } },
-        { id: 'macarrao', name: 'Macarrão', symbol: '🍝', desc: 'Ganha um tiro automático que causa lentidão (+10% por compra).', cost: 35, stackable: true, onPurchase: () => { playerState.hasPastaShot = true; playerState.pastaSlowFactor += 0.1 } },
-        { id: 'melancia', name: 'Melancia', symbol: '🍉', desc: 'Cria uma orbe de dano ao seu redor (+10 de dano por compra).', cost: 40, stackable: true, onPurchase: () => { playerState.watermelonOrb.damage += 10; } },
-        { id: 'ovelha', name: 'Ovelha', symbol: '🐑', desc: 'Dobra o valor do seu escudo atual.', cost: 25, stackable: true, onPurchase: () => { if (playerState.shield > 0) playerState.shield *= 2 } },
-        { id: 'brocolis', name: 'Brócolis', symbol: '🥦', desc: 'Ganha +1 chance de rerolar os itens da loja.', cost: 15, stackable: true, onPurchase: () => { playerState.shopRerolls++; } },
-        { id: 'manteiga', name: 'Manteiga', symbol: '🧈', desc: 'Cria uma aura que empurra inimigos próximos (+alcance por compra).', cost: 20, stackable: true, maxStacks: 10, onPurchase: () => { playerState.butterStacks = (playerState.butterStacks || 0) + 1; } },
-        { id: 'pepino', name: 'Pepino', symbol: '🥒', desc: 'Adiciona +1 opção de item no próximo mercado (máx. 12).', cost: 20, stackable: true, maxStacks: 9, onPurchase: () => { if (playerState.extraShopSlots < 9) playerState.extraShopSlots++; } },
-        { id: 'uvasVerdes', name: 'Uvas Verdes', symbol: '🟢', desc: 'Coleta 10% das moedas não pegas no fim da sala (acumulável).', cost: 20, stackable: true, onPurchase: () => { if (playerState.greenGrapesStacks < 20) playerState.greenGrapesStacks++; } },
-        { id: 'doceDeLeite', name: 'Doce de Leite', symbol: '🍮', desc: 'Seus companheiros ganham +20 Vida e +10 Dano.', cost: 30, stackable: true, onPurchase: () => { playerState.companionBuffs.bonusHealth += 20; playerState.companionBuffs.bonusDamage += 10; } },
-        { id: 'cremeDeLeite', name: 'Creme de Leite', symbol: '🥛', desc: '+4 de cura por segundo para o Amigo Iogurte.', cost: 25, stackable: true, onPurchase: () => {} },
-        { id: 'pinhao', name: 'Pinhão', symbol: '🌰', desc: 'Custa 2 moedas. Ganha 1 de dano e 1 moeda.', cost: 2, stackable: true, onPurchase: () => { playerState.baseAttack += 1; playerState.coins += 1; } },
-        { id: 'alho', name: 'Alho', symbol: '🧄', desc: 'Custa 2 moedas. Ganha 1 de vida e 1 moeda.', cost: 2, stackable: true, onPurchase: () => { playerState.baseHealth += 1; playerState.coins += 1; } },
-        { id: 'cebola', name: 'Cebola', symbol: '🧅', desc: 'Custa 3 moedas. Ganha 1 de vida, 1 de dano e 1 moeda.', cost: 3, stackable: true, onPurchase: () => { playerState.baseHealth += 1; playerState.baseAttack += 1; playerState.coins += 1; } },
-        { id: 'moranga', name: 'Moranga', symbol: '🎃', desc: 'Custa 5 moedas. Ganha 5 de vida e 10 moedas.', cost: 5, stackable: true, onPurchase: () => { playerState.baseHealth += 5; playerState.coins += 10; } },
-        { id: 'vagem', name: 'Vagem', symbol: '🫛', desc: 'Custa 2 moedas. Ganha 10 moedas.', cost: 2, stackable: true, onPurchase: () => { playerState.coins += 10; } },
-        { id: 'berinjela', name: 'Berinjela', symbol: '🍆', desc: 'Dobra o seu dano de espinhos atual (máx. 10).', cost: 30, stackable: true, maxStacks: 10, onPurchase: () => { if(playerState.thornsDamage > 0) playerState.thornsDamage *= 2; } },
-        { id: 'pimentao', name: 'Pimentão', symbol: '🫑', desc: '+10% de chance de encontrar itens raros.', cost: 25, stackable: true, onPurchase: () => { playerState.rareFindChance += 0.1; } },
-        { id: 'nozes', name: 'Nozes', symbol: '🥜', desc: 'Custa 1 moeda. Ganha 5 de vida. (Exclusivo do Mercador Urso)', cost: 1, stackable: true, onPurchase: () => { playerState.baseHealth += 5; } },
-        { id: 'pao', name: 'Pão', symbol: '🍞', desc: 'Aumenta permanentemente a chance de achar itens raros e lendários em 50%.', cost: 40, stackable: false, onPurchase: () => { playerState.rareFindChance *= 1.5; playerState.legendaryFindChance *= 1.5; } },
-        { id: 'tomate', name: 'Tomate', symbol: '🍅', desc: 'Dobra seu ataque base permanentemente.', cost: 30, stackable: false, onPurchase: () => { playerState.baseAttack *= 2; } },
-        { id: 'caixaDeLeite', name: 'Caixa de Leite', symbol: 'L🥛', desc: 'Leite agora cura o dobro (passivo).', cost: 30, stackable: false, onPurchase: () => { playerState.milkUpgrade = true; } },
-        { id: 'maca', name: 'Maçã', symbol: '🍎', desc: 'Tiros têm 50% de chance de aplicar veneno.', cost: 30, stackable: false, onPurchase: () => { playerState.hasPoisonUpgrade = true; } },
-        { id: 'uvas', name: 'Uvas', symbol: '🍇', desc: 'Moedas coletadas valem o dobro.', cost: 30, stackable: false, onPurchase: () => { playerState.hasGrapesUpgrade = true; } },
-        { id: 'frango', name: 'Frango', symbol: '🍗', desc: 'Permite que Ovos apareçam nas fases (+1 Vida, +1 Dano).', cost: 30, stackable: false, onPurchase: () => { playerState.canSpawnEggs = true; } },
-        { id: 'bife', name: 'Bife', symbol: '🥩', desc: 'Seus tiros agora vão na direção em que você se move.', cost: 30, stackable: false, onPurchase: () => { playerState.aimInMoveDirection = true; } },
-        { id: 'coelho', name: 'Coelho', symbol: '🐇', desc: 'Atira um projétil adicional (tiro duplo).', cost: 40, stackable: false, onPurchase: () => { playerState.hasDoubleShot = true; } },
-        { id: 'batidaDeBanana', name: 'Batida de Banana', symbol: '🍌', desc: 'Bananas agora curam 3 de vida.', cost: 25, stackable: false, onPurchase: () => { playerState.bananaUpgrade = true; } },
-        { id: 'rabanete', name: 'Rabanete', symbol: 'Radish', desc: 'Ganha 5 moedas, 5 de vida, 5 de dano e +5% chance de achar item raro.', cost: 50, stackable: false, onPurchase: () => { playerState.coins += 5; playerState.baseHealth += 5; playerState.baseAttack += 5; playerState.rareFindChance += 0.05;} },
+        { id: 'alface', name: 'Alface', symbol: '🥬', desc: 'Concede 30 de escudo.', cost: 30, stackable: true, rarity: 'comum', onPurchase: () => { playerState.shield += 30 } },
+        { id: 'macarrao', name: 'Macarrão', symbol: '🍝', desc: 'Ganha um tiro automático que causa lentidão (+10% por compra).', cost: 35, stackable: true, rarity: 'comum', onPurchase: () => { playerState.hasPastaShot = true; playerState.pastaSlowFactor += 0.1 } },
+        { id: 'manteiga', name: 'Manteiga', symbol: '🧈', desc: 'Cria uma aura que empurra inimigos (+alcance por compra).', cost: 20, stackable: true, maxStacks: 10, rarity: 'comum', onPurchase: () => { playerState.butterStacks = (playerState.butterStacks || 0) + 1; } },
+        { id: 'pinhao', name: 'Pinhão', symbol: '🌰', desc: 'Ganha 1 de dano e 1 moeda.', cost: 2, stackable: true, rarity: 'comum', onPurchase: () => { playerState.baseAttack += 1; playerState.coins += 1; } },
+        { id: 'alho', name: 'Alho', symbol: '🧄', desc: 'Ganha 1 de vida e 1 moeda.', cost: 2, stackable: true, rarity: 'comum', onPurchase: () => { playerState.baseHealth += 1; playerState.coins += 1; } },
+        { id: 'cebola', name: 'Cebola', symbol: '🧅', desc: 'Ganha 1 de vida, 1 de dano e 1 moeda.', cost: 3, stackable: true, rarity: 'comum', onPurchase: () => { playerState.baseHealth += 1; playerState.baseAttack += 1; playerState.coins += 1; } },
+        { id: 'brocolis', name: 'Brócolis', symbol: '🥦', desc: 'Ganha +1 chance de rerolar os itens da loja.', cost: 15, stackable: true, rarity: 'comum', onPurchase: () => { playerState.shopRerolls++; } },
+        { id: 'pepino', name: 'Pepino', symbol: '🥒', desc: 'Adiciona +1 opção de item no próximo mercado (máx. 12).', cost: 20, stackable: true, rarity: 'comum', onPurchase: () => { if (playerState.extraShopSlots < 9) playerState.extraShopSlots++; } },
+        { id: 'ovelha', name: 'Ovelha', symbol: '🐑', desc: 'Dobra o valor do seu escudo atual.', cost: 25, stackable: true, rarity: 'comum', onPurchase: () => { if (playerState.shield > 0) playerState.shield *= 2 } },
+        { id: 'nozes', name: 'Nozes', symbol: '🥜', desc: 'Ganha 5 de vida.', cost: 1, stackable: true, rarity: 'comum', onPurchase: () => { playerState.baseHealth += 5; } },
+
+        // Itens Incomuns
+        { id: 'laranja', name: 'Laranja', symbol: '🍊', desc: 'Dispara projéteis em 8 direções (+2 de dano por compra).', cost: 35, stackable: true, rarity: 'incomum', onPurchase: () => { playerState.orangeUpgrade += 1 } },
+        { id: 'melancia', name: 'Melancia', symbol: '🍉', desc: 'Cria uma orbe de dano ao seu redor (+10 de dano por compra).', cost: 40, stackable: true, rarity: 'incomum', onPurchase: () => { playerState.watermelonOrb.damage += 10; } },
+        { id: 'pao', name: 'Pão', symbol: '🍞', desc: 'Aumenta a chance de achar itens raros/lendários em 50%.', cost: 40, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.rareFindChance *= 1.5; playerState.legendaryFindChance *= 1.5; } },
+        { id: 'tomate', name: 'Tomate', symbol: '🍅', desc: 'Dobra seu ataque base permanentemente.', cost: 30, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.baseAttack *= 2; } },
+        { id: 'caixaDeLeite', name: 'Caixa de Leite', symbol: 'L🥛', desc: 'Leite agora cura o dobro (passivo).', cost: 30, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.milkUpgrade = true; } },
+        { id: 'maca', name: 'Maçã', symbol: '🍎', desc: 'Tiros têm 50% de chance de aplicar veneno.', cost: 30, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.hasPoisonUpgrade = true; } },
+        { id: 'uvas', name: 'Uvas', symbol: '🍇', desc: 'Moedas coletadas valem o dobro.', cost: 30, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.hasGrapesUpgrade = true; } },
+        { id: 'uvasVerdes', name: 'Uvas Verdes', symbol: '🟢', desc: 'Coleta 10% das moedas não pegas no fim da sala.', cost: 20, stackable: true, rarity: 'incomum', onPurchase: () => { if (playerState.greenGrapesStacks < 20) playerState.greenGrapesStacks++; } },
+        { id: 'frango', name: 'Frango', symbol: '🍗', desc: 'Permite que Ovos apareçam nas fases.', cost: 30, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.canSpawnEggs = true; } },
+        { id: 'bife', name: 'Bife', symbol: '🥩', desc: 'Seus tiros agora vão na direção em que você se move.', cost: 30, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.aimInMoveDirection = true; } },
+        { id: 'coelho', name: 'Coelho', symbol: '🐇', desc: 'Atira um projétil adicional (tiro duplo).', cost: 40, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.hasDoubleShot = true; } },
+        { id: 'batidaDeBanana', name: 'Batida de Banana', symbol: '🍌', desc: 'Bananas agora curam 3 de vida.', cost: 25, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.bananaUpgrade = true; } },
+        { id: 'milhoUpgrade', name: 'Milho', symbol: '🌽', desc: 'Milhos passam a aparecer nas fases (+1% chance por compra).', cost: 25, stackable: true, maxStacks: 20, rarity: 'incomum', onPurchase: () => { playerState.hasCornUpgrade = true; playerState.cornSpawnChance += 0.01; } },
         
         // Itens Raros
-        { id: 'abobora', name: 'Abóbora', symbol: '🎃', desc: '(RARO) Conjura uma abóbora que atravessa a sala causando dano.', cost: 65, stackable: false, rarity: 'rare', onPurchase: () => { if(!playerState.companionsToSummon.includes('abobora')) playerState.companionsToSummon.push('abobora') } },
-        { id: 'batata', name: 'Batata', symbol: '🥔', desc: '(RARO) O primeiro golpe que você recebe em cada sala é ignorado.', cost: 55, stackable: false, rarity: 'rare', onPurchase: () => { playerState.hasPotato = true; } },
-        { id: 'omelete', name: 'Omelete', symbol: '🍳', desc: '(RARO) Ovos agora concedem +2 de Vida e +2 de Dano.', cost: 40, stackable: false, rarity: 'rare', onPurchase: () => { playerState.hasOmeleteUpgrade = true; } },
-        { id: 'baguete', name: 'Baguete', symbol: '🥖', desc: '(RARO) Custa 100 moedas, mas te dá 120 moedas de volta.', cost: 100, stackable: true, rarity: 'rare', onPurchase: () => { playerState.coins += 120; } },
-        { id: 'bolo', name: 'Bolo', symbol: '🎂', desc: '(RARO) Seu tiro principal se torna teleguiado.', cost: 60, stackable: false, rarity: 'rare', onPurchase: () => { playerState.hasHomingShots = true; } },
-        { id: 'chocolate', name: 'Chocolate', symbol: '🍫', desc: '(RARO) Conjura um amigo chocolate que luta ao seu lado.', cost: 70, stackable: false, rarity: 'rare', onPurchase: () => { if(!playerState.companionsToSummon.includes('chocolate')) playerState.companionsToSummon.push('chocolate') } },
-        { id: 'pytaya', name: 'Pytaya', symbol: '🐉', desc: '(RARO) Conjura um amigo dragão que dispara bolas de fogo.', cost: 80, stackable: false, rarity: 'rare', onPurchase: () => { if(!playerState.companionsToSummon.includes('dragon')) playerState.companionsToSummon.push('dragon') } },
-        { id: 'sorvete', name: 'Sorvete', symbol: '🍦', desc: '(RARO) Conjura um amigo sorvete que dispara lasers.', cost: 45, stackable: false, rarity: 'rare', onPurchase: () => { if(!playerState.companionsToSummon.includes('ice_cream')) playerState.companionsToSummon.push('ice_cream') } },
-        { id: 'iogurte', name: 'Iogurte', symbol: '🍶', desc: '(RARO) Conjura um amigo iogurte que te cura por segundo.', cost: 50, stackable: false, rarity: 'rare', onPurchase: () => { if(!playerState.companionsToSummon.includes('yogurt')) playerState.companionsToSummon.push('yogurt') } },
-        { id: 'queijo', name: 'Queijo', symbol: '🧀', desc: '(RARO) Conjura um amigo queijo que coleta itens para você.', cost: 40, stackable: false, rarity: 'rare', onPurchase: () => { if(!playerState.companionsToSummon.includes('cheese')) playerState.companionsToSummon.push('cheese') } },
-        { id: 'sucoDeLaranja', name: 'Suco de Laranja', symbol: '🧃🍊', desc: '(RARO) Dobra o dano dos projéteis do item Laranja.', cost: 50, stackable: false, rarity: 'rare', onPurchase: () => { playerState.orangeJuiceUpgrade = true; } },
-        { id: 'sucoDeMaca', name: 'Suco de Maçã', symbol: '🥤🍎', desc: '(RARO) Veneno da Maçã causa +30 de dano por segundo.', cost: 50, stackable: false, rarity: 'rare', onPurchase: () => { playerState.poisonDPS += 30; } },
-        { id: 'sucoDeUva', name: 'Suco de Uva', symbol: '🧃🍇', desc: '(RARO) Ganha +10 Vida e +10 Ataque para cada 50 moedas.', cost: 60, stackable: false, rarity: 'rare', onPurchase: () => { playerState.hasGrapeJuice = true; } },
-        { id: 'tortaDeUva', name: 'Torta de Uva', symbol: '🥧', desc: '(RARO) Seu escudo se torna igual à sua quantidade de moedas.', cost: 40, stackable: false, rarity: 'rare', onPurchase: () => { playerState.hasGrapePie = true; } },
-        { id: 'cucaDeUva', name: 'Cuca de Uva', symbol: '🍰', desc: '(RARO) Ao tomar dano, perde moedas em vez de vida/escudo.', cost: 50, stackable: false, rarity: 'rare', onPurchase: () => { playerState.hasGrapeCuca = true; } },
+        { id: 'abobora', name: 'Abóbora', symbol: '🎃', desc: '(RARO) Conjura uma abóbora que atravessa a sala causando dano.', cost: 65, stackable: false, rarity: 'raro', onPurchase: () => { if(!playerState.companionsToSummon.includes('abobora')) playerState.companionsToSummon.push('abobora') } },
+        { id: 'batata', name: 'Batata', symbol: '🥔', desc: '(RARO) O primeiro golpe que você recebe em cada sala é ignorado.', cost: 55, stackable: false, rarity: 'raro', onPurchase: () => { playerState.hasPotato = true; } },
+        { id: 'omelete', name: 'Omelete', symbol: '🍳', desc: '(RARO) Ovos agora concedem +2 de Vida e +2 de Dano.', cost: 40, stackable: false, rarity: 'raro', onPurchase: () => { playerState.hasOmeleteUpgrade = true; } },
+        { id: 'baguete', name: 'Baguete', symbol: '🥖', desc: '(RARO) Receba 120 moedas.', cost: 100, stackable: true, rarity: 'raro', onPurchase: () => { playerState.coins += 120; } },
+        { id: 'bolo', name: 'Bolo', symbol: '🎂', desc: '(RARO) Seu tiro principal se torna teleguiado.', cost: 60, stackable: false, rarity: 'raro', onPurchase: () => { playerState.hasHomingShots = true; } },
+        { id: 'chocolate', name: 'Chocolate', symbol: '🍫', desc: '(RARO) Conjura um amigo chocolate que luta ao seu lado.', cost: 70, stackable: false, rarity: 'raro', onPurchase: () => { if(!playerState.companionsToSummon.includes('chocolate')) playerState.companionsToSummon.push('chocolate') } },
+        { id: 'pytaya', name: 'Pytaya', symbol: '🐉', desc: '(RARO) Conjura um amigo dragão que dispara bolas de fogo.', cost: 80, stackable: false, rarity: 'raro', onPurchase: () => { if(!playerState.companionsToSummon.includes('dragon')) playerState.companionsToSummon.push('dragon') } },
+        { id: 'sorvete', name: 'Sorvete', symbol: '🍦', desc: '(RARO) Conjura um amigo sorvete que dispara lasers.', cost: 45, stackable: false, rarity: 'raro', onPurchase: () => { if(!playerState.companionsToSummon.includes('ice_cream')) playerState.companionsToSummon.push('ice_cream') } },
+        { id: 'iogurte', name: 'Iogurte', symbol: '🍶', desc: '(RARO) Conjura um amigo iogurte que te cura por segundo.', cost: 50, stackable: false, rarity: 'raro', onPurchase: () => { if(!playerState.companionsToSummon.includes('yogurt')) playerState.companionsToSummon.push('yogurt') } },
+        { id: 'queijo', name: 'Queijo', symbol: '🧀', desc: '(RARO) Conjura um amigo queijo que coleta itens para você.', cost: 40, stackable: false, rarity: 'raro', onPurchase: () => { if(!playerState.companionsToSummon.includes('cheese')) playerState.companionsToSummon.push('cheese') } },
+        { id: 'sucoDeLaranja', name: 'Suco de Laranja', symbol: '🧃🍊', desc: '(RARO) Dobra o dano dos projéteis do item Laranja.', cost: 50, stackable: false, rarity: 'raro', onPurchase: () => { playerState.orangeJuiceUpgrade = true; } },
+        { id: 'sucoDeMaca', name: 'Suco de Maçã', symbol: '🥤🍎', desc: '(RARO) Veneno da Maçã causa +30 de dano por segundo.', cost: 50, stackable: false, rarity: 'raro', onPurchase: () => { playerState.poisonDPS += 30; } },
+        { id: 'sucoDeUva', name: 'Suco de Uva', symbol: '🧃🍇', desc: '(RARO) Ganha +10 Vida e +10 Ataque para cada 50 moedas.', cost: 60, stackable: false, rarity: 'raro', onPurchase: () => { playerState.hasGrapeJuice = true; } },
+        { id: 'tortaDeUva', name: 'Torta de Uva', symbol: '🥧', desc: '(RARO) Seu escudo se torna igual à sua quantidade de moedas.', cost: 40, stackable: false, rarity: 'raro', onPurchase: () => { playerState.hasGrapePie = true; } },
+        { id: 'cucaDeUva', name: 'Cuca de Uva', symbol: '🍰', desc: '(RARO) Ao tomar dano, perde moedas em vez de vida/escudo.', cost: 50, stackable: false, rarity: 'raro', onPurchase: () => { playerState.hasGrapeCuca = true; } },
+        { id: 'doceDeLeite', name: 'Doce de Leite', symbol: '🍮', desc: 'Seus companheiros ganham +20 Vida e +10 Dano.', cost: 30, stackable: true, rarity: 'raro', onPurchase: () => { playerState.companionBuffs.bonusHealth += 20; playerState.companionBuffs.bonusDamage += 10; } },
+        { id: 'cremeDeLeite', name: 'Creme de Leite', symbol: '🥛', desc: '+4 de cura por segundo para o Amigo Iogurte.', cost: 25, stackable: true, rarity: 'raro', onPurchase: () => {} },
         
         // Itens Lendários
-        { id: 'mel', name: 'Mel', symbol: '🍯', desc: '(LENDÁRIO) Conjura 4 abelhas teleguiadas a cada 30s. Dano aumenta por compra. (Exclusivo do Mercador Urso)', cost: 200, stackable: true, rarity: 'legendary', onPurchase: () => { playerState.honeyStacks++; } },
-        { id: 'churrasco', name: 'Churrasco', symbol: '🍖', desc: '(LENDÁRIO) Inimigos que tocam em você recebem 5 de dano.', cost: 80, stackable: false, rarity: 'legendary', onPurchase: () => { playerState.thornsDamage += 5; } },
-        { id: 'uvaBranca', name: 'Uva Branca', symbol: '⚪', desc: '(LENDÁRIO) Suas unidades conjuradas ganham 200% de velocidade de ataque.', cost: 100, stackable: false, rarity: 'legendary', onPurchase: () => { playerState.hasWhiteGrape = true; } },
+        { id: 'mel', name: 'Mel', symbol: '🍯', desc: '(LENDÁRIO) Conjura abelhas teleguiadas. Dano aumenta por compra.', cost: 200, stackable: true, rarity: 'lendario', onPurchase: () => { playerState.honeyStacks++; } },
+        { id: 'churrasco', name: 'Churrasco', symbol: '🍖', desc: '(LENDÁRIO) Inimigos que tocam em você recebem 5 de dano.', cost: 80, stackable: false, rarity: 'lendario', onPurchase: () => { playerState.thornsDamage += 5; } },
+        { id: 'uvaBranca', name: 'Uva Branca', symbol: '⚪', desc: '(LENDÁRIO) Suas unidades conjuradas ganham 200% de velocidade de ataque.', cost: 100, stackable: false, rarity: 'lendario', onPurchase: () => { playerState.hasWhiteGrape = true; } },
     ];
 
     function updateStatusBoard() { refs.ui.room.textContent = playerState.currentRoom; refs.ui.health.textContent = playerState.health.toFixed(0); refs.ui.shield.textContent = playerState.shield.toFixed(0); refs.ui.attack.textContent = playerState.attack.toFixed(0); refs.ui.coins.textContent = playerState.coins; }
@@ -204,7 +205,7 @@
         if (itemData.maxStacks && invCount >= itemData.maxStacks) return;
         
         playerState.coins -= itemData.cost;
-        playerState.baseHealth++; 
+        playerState.baseHealth++; // Efeito especial do Urso
         
         if (itemData.onPurchase) itemData.onPurchase();
         playerState.inventory.set(itemData.name, invCount + 1);
@@ -213,44 +214,42 @@
         openShop();
     }
 
-    // CORRIGIDO: Lógica da loja com curadoria de itens do Urso e filtro de especiais
     function openShop() {
         refs.shop.overlay.classList.remove('hidden');
         refs.shop.itemsContainer.innerHTML = '';
         
         const availablePool = masterShopList.filter(i => {
-            // CORREÇÃO DO BUG: Filtra itens especiais e de eventos
-            if (i.rarity === 'especial' || i.cost === 'Evento' || i.desc.includes('Exclusivo do Gato') || i.desc.includes('Exclusivo da Mercadora') ) return false;
+            if (i.rarity === 'especial' || i.cost === 'Evento' || i.desc.includes('Exclusivo da Mercadora') || i.desc.includes('Exclusivo do Gato')) return false;
             
             const invCount = playerState.inventory.get(i.name) || 0;
             if (i.stackable === false) return invCount === 0;
             const max = i.maxStacks || Infinity; return invCount < max;
         });
 
-        // Itens temáticos do Urso
         const ursoExclusives = availablePool.filter(i => i.id === 'mel' || i.id === 'nozes');
         const ursoThematic = availablePool.filter(i => ['laranja', 'melancia', 'maca', 'batidaDeBanana', 'chocolate', 'pinhao', 'uvasVerdes'].includes(i.id));
         const others = availablePool.filter(i => !ursoExclusives.map(u=>u.id).includes(i.id) && !ursoThematic.map(t=>t.id).includes(i.id));
         
         let itemsToShow = [];
+        const totalSlots = 4 + playerState.extraShopSlots;
 
-        // Adiciona os itens exclusivos
-        itemsToShow.push(...ursoExclusives);
-        
-        // Preenche com itens temáticos
+        // Adiciona os itens exclusivos garantidos
+        itemsToShow.push(...ursoExclusives.filter(item => !itemsToShow.find(i => i.id === item.id)));
+
+        // Preenche com itens temáticos, se houver espaço
         const thematicSlots = 2;
-        if (ursoThematic.length > 0) {
-            itemsToShow.push(...ursoThematic.sort(() => 0.5 - Math.random()).slice(0, thematicSlots));
+        if (itemsToShow.length < totalSlots) {
+            const availableThematic = ursoThematic.filter(t => !itemsToShow.find(i => i.id === t.id));
+            const toAdd = Math.min(thematicSlots, totalSlots - itemsToShow.length);
+            itemsToShow.push(...availableThematic.sort(() => 0.5 - Math.random()).slice(0, toAdd));
         }
         
-        // Preenche o resto com itens gerais
-        const remainingSlots = (4 + playerState.extraShopSlots) - itemsToShow.length;
-        if (others.length > 0 && remainingSlots > 0) {
-            itemsToShow.push(...others.sort(() => 0.5 - Math.random()).slice(0, remainingSlots));
+        // Preenche o resto com itens gerais, se houver espaço
+        if (itemsToShow.length < totalSlots) {
+            const availableOthers = others.filter(o => !itemsToShow.find(i => i.id === o.id));
+            const remainingSlots = totalSlots - itemsToShow.length;
+            itemsToShow.push(...availableOthers.sort(() => 0.5 - Math.random()).slice(0, remainingSlots));
         }
-
-        // Garante que a lista final não tenha duplicatas e respeite o limite de slots
-        itemsToShow = Array.from(new Set(itemsToShow)).slice(0, 4 + playerState.extraShopSlots);
         
         itemsToShow.forEach(itemData => {
             const itemDiv = document.createElement('div');
@@ -283,6 +282,7 @@
         requestAnimationFrame(sceneLoop);
     }
     
+    // --- INICIALIZAÇÃO ---
     updateStatusBoard();
     updateInventoryDisplay();
     playerState.x = 368;
