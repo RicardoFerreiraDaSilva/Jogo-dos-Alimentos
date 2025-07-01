@@ -13,8 +13,8 @@
         .entity { position: absolute; background-size: contain; background-repeat: no-repeat; cursor: pointer; }
         #player { width: 64px; height: 64px; background-image: url('imagens/gatinho_pixel_32x32.png'); z-index: 10; cursor: default; }
         #robot-cat { width: 96px; height: 96px; background-image: url('imagens/gato_robo.png'); z-index: 9; }
-        #cookie-machine { width: 80px; height: 120px; background-image: url('imagens/maquina_biscoito.png'); z-index: 9; }
-        #card-machine { width: 80px; height: 120px; background-image: url('imagens/maquina_cartas.png'); z-index: 9; }
+        #cookie-machine { width: 160px; height: 240px; background-image: url('imagens/maquina_biscoito.png'); z-index: 9; }
+        #card-machine { width: 160px; height: 240px; background-image: url('imagens/maquina_cartas.png'); z-index: 9; }
         #ui-column { display: flex; flex-direction: column; align-items: center; }
         #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
         #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
@@ -23,7 +23,8 @@
         .golden-item { color: #f1c40f; font-weight: bold; }
         #dialogue-box { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 750px; padding: 20px; background-color: rgba(10, 20, 40, 0.9); border: 3px solid #00c2ff; border-radius: 10px; box-sizing: border-box; text-align: center; z-index: 200; }
         #dialogue-text { font-size: 22px; margin: 0 0 20px 0; min-height: 50px; line-height: 1.4; white-space: pre-wrap; }
-        #dialogue-options button { font-size: 18px; padding: 10px 20px; border: 2px solid #00c2ff; background-color: #2c3e50; color: white; border-radius: 5px; cursor: pointer; margin: 5px; }
+        #dialogue-options { max-height: 300px; overflow-y: auto; padding-right: 10px; }
+        #dialogue-options button { display: block; width: 100%; text-align: left; font-size: 18px; padding: 10px 20px; border: 2px solid #00c2ff; background-color: #2c3e50; color: white; border-radius: 5px; cursor: pointer; margin: 5px 0; }
         #dialogue-options button:hover { background-color: #4a6581; }
         #dialogue-options button:disabled { background-color: #222; color: #555; cursor: not-allowed; border-color: #555; }
         #proceed-button { position: absolute; bottom: 20px; right: 20px; padding: 15px 30px; font-size: 22px; cursor: pointer; background-color:#27ae60; border: 2px solid #2ecc71; color: white; border-radius: 10px; z-index: 150; }
@@ -68,16 +69,13 @@
             npcsEncontrados: [],
             totalCompras: 0,
             specialDishes: [],
-            coelhaDialogueDone: false, raposaDialogueDone: false, ursoDialogueDone: false,
-            vacaDialogueDone: false, vacaGaveGold: false,
-            permanentUnlocks: {} // Adicionado para compatibilidade
+            permanentUnlocks: {}
         };
         Object.defineProperty(state, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true });
         Object.defineProperty(state, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true });
         return state;
     }
     
-    // CORREÇÃO: Chave do save padronizada para 'v27' para corresponder ao jogo principal.
     const SAVE_KEY = 'meuJoguinhoState_v27';
 
     function savePlayerState(state) {
@@ -91,8 +89,8 @@
         const loadedObject = JSON.parse(savedStateJSON);
         const baseState = getNewPlayerState();
         const restoredState = { ...baseState, ...loadedObject, inventory: new Map(loadedObject.inventory) };
-        Object.defineProperty(restoredState, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true });
-        Object.defineProperty(restoredState, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true });
+        Object.defineProperty(restoredState, 'health', { get() { return restoredState.baseHealth + restoredState.bonusHealth; }, configurable: true });
+        Object.defineProperty(restoredState, 'attack', { get() { return restoredState.baseAttack + restoredState.bonusAttack; }, configurable: true });
         return restoredState;
     };
 
@@ -110,32 +108,46 @@
     let cookiesBoughtThisRoom = 0;
     const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
 
+    // --- LISTA DE CARTAS COMPLETA E ATUALIZADA ---
     const masterCardList = [
-        { id: 'card_gato_coringa', name: 'Card: Gato Coringa', desc: "HAHAHA! Um agente do caos que testa heróis com um quiz de alto risco. Acerte para ganhar prêmios incríveis... erre e perca tudo! Você tem coragem para jogar?", unlockCondition: (s) => s.npcsEncontrados.includes('gatoCoringa') },
-        { id: 'card_gato_robo', name: 'Card: Gato Robô', desc: "Um arquivista cibernético que valoriza o conhecimento. Acredita que uma dieta balanceada é a chave para a otimização de qualquer sistema.", unlockCondition: (s) => s.npcsEncontrados.includes('gatoRobo') },
-        { id: 'card_gato_cavaleiro', name: 'Card: Gato Cavaleiro', desc: "Um guerreiro que valoriza a força e as proteínas. Desafie-o para um combate honrado para ganhar seu item mais precioso: o Peixe do Cavaleiro.", unlockCondition: (s) => s.npcsEncontrados.includes('gatoCavaleiro') },
-        { id: 'card_fazendeiro', name: 'Card: Cachorro Fazendeiro', desc: "Um fazendeiro que sente falta da diversidade alimentar. Oferecer a ele comida resulta em uma recompensa suculenta: o Morango Brilhante.", unlockCondition: (s) => s.npcsEncontrados.includes('fazendeiro') },
-        { id: 'card_gato_mago', name: 'Card: Gato Mago', desc: "Um mago generoso que compartilha seus pratos mágicos com bravos aventureiros. Cada prato concede um bônus permanente. Escolha com sabedoria!", unlockCondition: (s) => s.npcsEncontrados.includes('gatoMago') },
-        { id: 'card_gato_sorte', name: 'Card: Gato da Sorte', desc: "Misterioso e afortunado, este gato revela que você não está sozinho. Ele também veio de outro mundo para restaurar o equilíbrio, ajudando com moedas.", unlockCondition: (s) => s.npcsEncontrados.includes('gatoSorte') },
-        { id: 'card_coelha', name: 'Card: Coelha Mercadora', desc: "Vinda do Reino das Hortaliças, esta empreendedora odeia a Rainha Uva. Em sua loja, todos os vegetais e legumes têm 50% de desconto.", unlockCondition: (s) => s.npcsEncontrados.includes('coelha') },
-        { id: 'card_raposa', name: 'Card: Raposa Mercadora', desc: "Uma mercadora astuta e experiente que sempre parece ter os melhores e mais raros produtos. Sua seleção é baseada na sorte do aventureiro.", unlockCondition: (s) => s.npcsEncontrados.includes('raposa') },
-        { id: 'card_urso', name: 'Card: Mercador Urso', desc: "Um urso sábio e sonolento que vende itens para dar 'vigor'. Sua loja é especializada em frutas e mel. Cada compra em seu empório fortalece sua vida permanentemente.", unlockCondition: (s) => s.npcsEncontrados.includes('urso') },
-        { id: 'card_vaca', name: 'Card: Vaca Mercadora', desc: "Uma mercadora vaidosa e elegante, especialista em laticínios. Em seu 'Cantinho Cremoso', cada compra garante uma camada protetora de escudo.", unlockCondition: (s) => s.npcsEncontrados.includes('vaca') },
-        { id: 'card_peixe_cavaleiro', name: 'Card: Peixe do Cavaleiro', desc: "Item lendário. Se você não tomar dano em uma sala de combate, ganha +30 de dano permanentemente. Recompensa para guerreiros habilidosos.", unlockCondition: (s) => s.inventory.has('Peixe do Cavaleiro') },
-        { id: 'card_morango_brilhante', name: 'Card: Morango Brilhante', desc: "Item especial. Concede +1 Vida, +1 Ataque, +1 Escudo, +10% de chance rara e um tiro teleguiado adicional. Uma explosão de nutrientes!", unlockCondition: (s) => s.inventory.has('Morango Brilhante') },
-        { id: 'card_mel_lendario', name: 'Card: Mel Lendário', desc: "Item lendário exclusivo do Mercador Urso. Permite conjurar abelhas teleguiadas que atacam seus inimigos. Quanto mais mel, mais forte o enxame.", unlockCondition: (s) => s.inventory.has('Mel') },
-        { id: 'card_queijo_suico', name: 'Card: Queijo Suíço Raro', desc: "Item raro exclusivo da Vaca Mercadora. Se não tomar dano em uma sala, há 50% de chance de ganhar um escudo protetor.", unlockCondition: (s) => s.inventory.has('Queijo Suiço') },
-        { id: 'card_guisado_coringa', name: 'Card: Guisado do Coringa', desc: "Um prêmio especial do quiz do Coringa. Concede um massivo bônus de 50 de dano de espinhos. Perfeito para quem gosta de viver perigosamente.", unlockCondition: (s) => s.inventory.has('Guisado do Coringa') },
-        { id: 'card_pizza_celestial', name: 'Card: Pizza Celestial', desc: "O prêmio final do Gato Coringa. Aparentemente não faz nada, mas o conhecimento de que você a possui enche você de determinação... e satisfação.", unlockCondition: (s) => s.inventory.has('Pizza Celestial') },
-        { id: 'card_laticinios', name: 'Card Grupo: Laticínios', desc: "Especialidade da Vaca Mercadora. Itens como Queijo Suíço, Leite e Iogurte são focados em defesa e suporte, oferecendo escudo e cura.", unlockCondition: (s) => s.inventory.has('Queijo Suiço') || s.inventory.has('Caixa de Leite') },
-        { id: 'card_hortalicas', name: 'Card Grupo: Hortaliças', desc: "O grupo de alimentos preferido da Coelha. Itens como Alface, Brócolis e Milho são mais baratos em sua loja e oferecem uma grande variedade de bônus.", unlockCondition: (s) => s.inventory.has('Alface') && s.inventory.has('Milho') },
-        { id: 'card_companheiros', name: 'Card Mecânica: Companheiros', desc: "Itens como o Chocolate e o Iogurte conjuram amigos para lutar ao seu lado. Itens como o Doce de Leite podem fortalecê-los ainda mais!", unlockCondition: (s) => s.companionsToSummon && s.companionsToSummon.length > 0 },
-        { id: 'card_desconto', name: 'Card Conquista: Cliente Fiel', desc: "Você é um cliente fiel! A Rainha Uva odeia pechinchas, mas o livre mercado sempre vence. Este cartão concede um pequeno desconto permanente em todas as lojas.", unlockCondition: (s) => s.totalCompras >= 30 },
+        // NPCs Mercadores
+        { id: 'card_raposa', name: 'Gabriel, o Mercador Raposa', details: { emoji: '🦊', title: 'O Mercador Aventureiro', origin: 'Reino das Frutas', location: 'Bosques Verdejantes', favoriteFood: 'Churrasco', favoriteGroups: 'Carnes, Ovos e Cereais', favoriteColor: 'Vermelho', relationships: 'Amigo próximo do Gato Cavaleiro e respeitado por todos na floresta.', philosophy: '“Exercícios físicos são tão importantes quanto uma boa alimentação!”' }},
+        { id: 'card_urso', name: 'Arthur, o Mercador Urso', details: { emoji: '🐻', title: 'O Comerciante Robusto', origin: 'Reino das Carnes e Ovos', location: 'Bosques Roxos', favoriteFood: 'Mel e Nozes', favoriteGroups: 'Açúcares e Doces (com moderação!)', favoriteColor: 'Cinza', relationships: 'Grande admirador da sabedoria do Mercador Tartaruga.', philosophy: '“Uma alimentação nutritiva é a base para o verdadeiro vigor.”' }},
+        { id: 'card_coelha', name: 'Vitória, a Mercadora Coelha', details: { emoji: '🐰', title: 'A Empreendedora Novata', origin: 'Reino das Hortaliças', location: 'Clareiras Alaranjadas', favoriteFood: 'Cenoura e Couve', favoriteColor: 'Laranja', relationships: 'Próxima da Mercadora Vaca e do Mercador Tartaruga.', philosophy: '“Sonho com uma vida melhor para mim e minha família, com comida de verdade para todos!”' }},
+        { id: 'card_vaca', name: 'Camile, a Mercadora Vaca', details: { emoji: '🐮', title: 'A Rainha dos Laticínios', origin: 'Reino dos Laticínios', location: 'Bosques Floridos Mistos', favoriteFood: 'Brócolis', favoriteGroups: 'Hortaliças e Frutas', favoriteColor: 'Azul', relationships: 'Muito amiga da Mercadora Coelha e do Mercador Urso.', philosophy: '“Estilo é tudo, querido. E essa Rainha Uva... que deselegância!”' }},
+
+        // Outros NPCs
+        { id: 'card_gato_coringa', name: 'Gato Coringa', details: { emoji: '🃏', title: 'O Agente do Caos', origin: 'Dimensão do Acaso', location: 'Qualquer lugar, a qualquer hora', favoriteFood: 'Guisado do Coringa (a receita muda a cada garfada)', favoriteColor: 'Roxo e Verde', relationships: 'Ninguém. Relações são muito previsíveis.', philosophy: '“Equilíbrio? A verdadeira graça está no delicioso caos da incerteza! Hahaha!”' }},
+        { id: 'card_gato_robo', name: 'Gato Robô', details: { emoji: '🤖', title: 'O Arquivista Cibernético', origin: 'Planeta Technutron 5000', location: 'Santuário Tecnológico (Bosque Rosa)', favoriteFood: 'Dados puros (mas aceita um Biscoito para análise).', favoriteColor: 'Ciano', relationships: 'Conectado à rede neural da floresta.', philosophy: '“A informação é o nutriente supremo. Uma dieta balanceada otimiza a performance.”' }},
+        { id: 'card_gato_cavaleiro', name: 'Gato Cavaleiro', details: { emoji: '⚔️', title: 'O Paladino das Proteínas', origin: 'O Grande Salão de Val-Miau-a', location: 'Arenas de Treinamento', favoriteFood: 'Peixe do Cavaleiro', favoriteColor: 'Prata', relationships: 'Respeito mútuo com Gabriel, a Raposa.', philosophy: '“A verdadeira força não vem só dos músculos, mas de um prato nobre e honrado!”' }},
+        { id: 'card_fazendeiro', name: 'Cachorro Fazendeiro', details: { emoji: '👨‍🌾', title: 'O Guardião da Colheita', origin: 'As Colinas Férteis (Nativo deste mundo)', location: 'Campos de Morangos', favoriteFood: 'Morango Brilhante', favoriteColor: 'Marrom Terra', relationships: 'Fornecedor para todos os mercadores justos.', philosophy: '“A terra nos dá tudo, mas a Rainha esqueceu que variedade é o tempero da vida.”' }},
+        { id: 'card_gato_mago', name: 'Gato Mago', details: { emoji: '🧙', title: 'O Alquimista Culinário', origin: 'Plano Etéreo dos Sabores', location: 'Bosques Azulados e Mágicos', favoriteFood: 'Pratos mágicos que nunca se repetem.', favoriteColor: 'Azul Astral', relationships: 'Uma figura enigmática e mentora para os perdidos.', philosophy: '“Cada ingrediente é um encantamento. A magia de verdade está em um prato equilibrado!”' }},
+        { id: 'card_gato_sorte', name: 'Gato da Sorte', details: { emoji: '🍀', title: 'O Viajante Afortunado', origin: 'Um mundo onde a sorte é uma moeda real.', location: 'Bosques Amarelos e Dourados', favoriteFood: 'Moedas de Chocolate', favoriteColor: 'Dourado', relationships: 'Aparece para quem mais precisa.', philosophy: '“O equilíbrio não é só sobre comida, é sobre sorte. E eu sou a prova de que você não está sozinho.”' }},
+
+        // Cards Educacionais dos Grupos Alimentares
+        { id: 'card_group_cereais', name: 'Card Grupo: Cereais e Tubérculos', desc: "A base da nossa pirâmide! Itens como Pão, Arroz e Batata são ricos em carboidratos, a principal fonte de energia para o corpo se mover, pensar e lutar. Sem eles, até o guerreiro mais forte se sentiria fraco." },
+        { id: 'card_group_hortalicas', name: 'Card Grupo: Hortaliças', desc: "Essenciais para a defesa do corpo! Alimentos como Cenoura e Brócolis são repletos de vitaminas, minerais e fibras. Eles regulam as funções do organismo e protegem contra doenças, como um verdadeiro escudo natural." },
+        { id: 'card_group_frutas', name: 'Card Grupo: Frutas', desc: "Doces e poderosas! Frutas como Banana e Laranja são fontes rápidas de energia, vitaminas e fibras. Ajudam na hidratação e na saúde da pele. A Rainha Uva pode ter exagerado, mas elas são muito importantes!" },
+        { id: 'card_group_laticinios', name: 'Card Grupo: Leites e Laticínios', desc: "Fundamentais para estruturas fortes! Leite, Queijo e Iogurte são as maiores fontes de Cálcio, mineral essencial para a saúde dos ossos e dentes. Também fornecem proteínas de alta qualidade." },
+        { id: 'card_group_carnes', name: 'Card Grupo: Carnes e Ovos', desc: "Para força e reparo! Carnes e Ovos são as principais fontes de proteínas, os 'tijolos' do nosso corpo. Eles constroem e reparam os músculos e tecidos, além de serem ricos em ferro para combater o cansaço." },
+        { id: 'card_group_leguminosas', name: 'Card Grupo: Leguminosas', desc: "Proteína que vem da terra! Feijão, Nozes e Pinhão são excelentes fontes de proteína vegetal e fibras. Eles garantem energia duradoura e ajudam no bom funcionamento do sistema digestivo." },
+        { id: 'card_group_gorduras', name: 'Card Grupo: Óleos e Gorduras', desc: "Energia concentrada! Itens como Manteiga devem ser usados com moderação. As gorduras são importantes para proteger nossos órgãos e para absorver certas vitaminas, mas o excesso pode ser prejudicial." },
+        { id: 'card_group_doces', name: 'Card Grupo: Açúcares e Doces', desc: "O prazer com moderação! Chocolate, Mel e Bolos fornecem energia rápida, mas geralmente não possuem muitos nutrientes. São deliciosos, mas devem ficar no topo da pirâmide: consuma em pequenas quantidades!" },
+        
+        // Cards de Itens e Mecânicas
+        { id: 'card_peixe_cavaleiro', name: 'Card: Peixe do Cavaleiro', desc: "Item lendário. Se você não tomar dano em uma sala de combate, ganha +30 de dano permanentemente. Recompensa para guerreiros habilidosos."},
+        { id: 'card_morango_brilhante', name: 'Card: Morango Brilhante', desc: "Item especial. Concede +1 Vida, +1 Ataque, +1 Escudo, +10% de chance rara e um tiro teleguiado adicional."},
+        { id: 'card_mel_lendario', name: 'Card: Mel Lendário', desc: "Item lendário exclusivo do Mercador Urso. Permite conjurar abelhas teleguiadas que atacam seus inimigos."},
+        { id: 'card_queijo_suico', name: 'Card: Queijo Suíço Raro', desc: "Item raro exclusivo da Vaca Mercadora. Se não tomar dano em uma sala, há 50% de chance de ganhar um escudo protetor."},
+        { id: 'card_guisado_coringa', name: 'Card: Guisado do Coringa', desc: "Um prêmio especial do quiz do Coringa. Concede um massivo bônus de 50 de dano de espinhos."},
+        { id: 'card_pizza_celestial', name: 'Card: Pizza Celestial', desc: "O prêmio final do Gato Coringa. Aparentemente não faz nada, mas o conhecimento de que você a possui enche você de determinação."},
+        { id: 'card_companheiros', name: 'Card Mecânica: Companheiros', desc: "Itens como o Chocolate e o Iogurte conjuram amigos para lutar ao seu lado."},
+        { id: 'card_desconto', name: 'Card Conquista: Cliente Fiel', desc: "Você é um cliente fiel! Concede um pequeno desconto permanente em todas as lojas."}
     ];
 
     function updateUI() {
         const ui = refs.ui;
-        if (!playerState) return; // Checagem de segurança
+        if (!playerState) return;
         ui.room.textContent = playerState.currentRoom; ui.health.textContent = playerState.health.toFixed(0); ui.shield.textContent = playerState.shield.toFixed(0); ui.attack.textContent = playerState.attack.toFixed(0); ui.coins.textContent = playerState.coins;
         ui.inventory.innerHTML = '';
         playerState.inventory.forEach((count, name) => {
@@ -146,8 +158,6 @@
             ui.inventory.appendChild(itemEl);
         });
     }
-
-    function checkCollision(div1, div2, inset = 0) { const r1 = div1.getBoundingClientRect(); const r2 = div2.getBoundingClientRect(); const sr2 = { left: r2.left - inset, right: r2.right + inset, top: r2.top - inset, bottom: r2.bottom + inset }; return !(r1.right < sr2.left || r1.left > sr2.right || r1.bottom < sr2.top || r1.top > sr2.bottom); }
 
     function showDialogue(text, options = []) {
         gameState = 'DIALOGUE'; refs.dialogueText.textContent = text; refs.dialogueOptions.innerHTML = '';
@@ -166,46 +176,39 @@
         if (gameState !== 'IDLE') return;
         showDialogue("Olá, unidade orgânica. Análise: você busca otimização. A Rainha Uva prega força através da restrição, um paradigma falho. A verdadeira eficiência vem do conhecimento e de uma dieta balanceada. Use minhas máquinas para expandir seus dados.", [{ text: "Análise interessante.", action: hideDialogue }]);
     }
-
-    // CORREÇÃO: Lógica da máquina de biscoitos simplificada para evitar bugs de diálogo.
+    
     function interactWithCookieMachine() {
         if (gameState !== 'IDLE' && gameState !== 'DIALOGUE') return;
-
         if (cookiesBoughtThisRoom >= 10) {
-            showDialogue("Alerta de sistema: consumo excessivo de açúcares processados detectado. Uma dieta balanceada requer moderação. Volte mais tarde.", [{ text: "Entendido.", action: hideDialogue }]);
+            showDialogue("Alerta de sistema: consumo excessivo de calorias vazias detectado. Moderação é crucial para uma dieta balanceada. Dispensador bloqueado para esta visita.", [{ text: "Entendido.", action: hideDialogue }]);
             return;
         }
-
         const buyAction = () => {
             if (playerState.coins >= 1) {
                 playerState.coins -= 1;
-                playerState.totalCompras++;
-                playerState.inventory.set('Biscoito', (playerState.inventory.get('Biscoito') || 0) + 1);
+                playerState.baseHealth += 5;
+                playerState.coins += 5;
                 cookiesBoughtThisRoom++;
                 updateUI();
-                // Após a compra, simplesmente reabre o diálogo principal da máquina.
                 interactWithCookieMachine(); 
             } else {
                 showDialogue("Moedas insuficientes.", [{ text: "Fechar", action: hideDialogue }]);
             }
         };
-
         const options = [
-            { text: `Comprar Biscoito (1 moeda)`, action: buyAction },
+            { text: `Pagar 1 moeda (+5 Vida, +5 Moedas)`, action: buyAction },
             { text: "Sair", action: hideDialogue }
         ];
-
-        // Desabilita o botão de compra se não houver dinheiro.
         if (playerState.coins < 1) options[0].disabled = true;
-
-        showDialogue(`Dispensador de Biscoitos. Cada unidade custa 1 moeda. Você já comprou ${cookiesBoughtThisRoom}/10.`, options);
+        showDialogue(`Dispensador Nutritivo. Unidades restantes: ${10 - cookiesBoughtThisRoom}`, options);
     }
 
     function interactWithCardMachine() {
         if (gameState !== 'IDLE') return;
-        const availableCards = masterCardList.filter(card => !playerState.cartasCompradas.includes(card.id) && card.unlockCondition(playerState));
+        const availableCards = masterCardList.filter(card => !playerState.cartasCompradas.includes(card.id));
+        
         if (availableCards.length === 0) {
-            showDialogue("Processando... Nenhum novo pacote de dados disponível para seu perfil no momento. Continue sua jornada e colete mais dados (itens e experiências) para desbloquear novos cards.", [{ text: "Compreendido.", action: hideDialogue }]);
+            showDialogue("Processando... Todos os pacotes de dados disponíveis para seu perfil já foram adquiridos. Parabéns, unidade orgânica, seu conhecimento está completo.", [{ text: "Excelente.", action: hideDialogue }]);
             return;
         }
         const cardOptions = availableCards.map(card => ({
@@ -214,7 +217,7 @@
             action: () => buyCard(card)
         }));
         cardOptions.push({ text: "Sair", action: hideDialogue });
-        showDialogue("Bem-vindo ao terminal de conhecimento. Pacotes de dados disponíveis para download:", cardOptions);
+        showDialogue("Bem-vindo ao terminal de conhecimento. Todos os pacotes de dados estão disponíveis para download:", cardOptions);
     }
 
     function buyCard(card) {
@@ -222,9 +225,18 @@
             playerState.coins -= 100;
             playerState.cartasCompradas.push(card.id);
             if (!playerState.permanentUnlocks) playerState.permanentUnlocks = {};
-            playerState.permanentUnlocks.cardViewerEnabled = true; // Habilita o botão no menu principal
+            playerState.permanentUnlocks.cardViewerEnabled = true;
             updateUI();
-            showDialogue(`Download completo!\n\n${card.name}\n"${card.desc}"`, [
+            
+            // Mostra a descrição da carta comprada
+            let cardDescription = card.desc;
+            if (card.details && card.details.philosophy) {
+                cardDescription = card.details.philosophy;
+            } else if (card.details && card.details.title) {
+                cardDescription = card.details.title;
+            }
+
+            showDialogue(`Download completo!\n\n${card.name}\n"${cardDescription}"`, [
                 { text: "Adquirir outro", action: () => interactWithCardMachine() },
                 { text: "Sair", action: hideDialogue }
             ]);
@@ -245,9 +257,11 @@
     
     function initRoom() {
         playerState.x = 368; playerState.y = 450;
-        refs.robotCat.style.left = `352px`; refs.robotCat.style.top = `250px`;
-        refs.cookieMachine.style.left = '150px'; refs.cookieMachine.style.top = '250px';
-        refs.cardMachine.style.left = '570px'; refs.cardMachine.style.top = '250px';
+        refs.robotCat.style.left = `352px`; refs.robotCat.style.top = `280px`;
+        refs.cookieMachine.style.left = '100px'; refs.cookieMachine.style.top = '180px';
+        refs.cardMachine.style.left = '540px'; refs.cardMachine.style.top = '180px';
+        
+        if (!playerState.npcsEncontrados) playerState.npcsEncontrados = [];
         if (!playerState.npcsEncontrados.includes('gatoRobo')) {
             playerState.npcsEncontrados.push('gatoRobo');
         }
