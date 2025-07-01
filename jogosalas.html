@@ -20,7 +20,37 @@
         .inventory-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .golden-item { color: #f1c40f; font-weight: bold; border: 1px solid #f1c40f; padding: 2px; border-radius: 3px;}
         .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.95); }
-        #main-menu { background-image: url('imagens/Mercado.png'); background-size: cover; background-position: center; }
+        #main-menu {
+    background-image: url('imagens/bosque_coragem.png');
+    background-size: cover;
+    background-position: center;
+    overflow-y: auto; /* Adiciona a barra de rolagem vertical quando o conteúdo for maior que a tela */
+    justify-content: flex-start; /* Alinha os itens ao topo para a rolagem funcionar corretamente */
+    padding-top: 20px; /* Adiciona um espaçamento no topo para a logo não colar na borda */
+    padding-bottom: 20px; /* Adiciona um espaçamento embaixo para o último botão não colar na borda */
+}
+        
+        /* --- ESTILOS MODIFICADOS E ADICIONADOS --- */
+        #game-logo {
+            max-width: 350px; /* Ajuste a largura máxima da sua logo */
+            margin-bottom: 1px;
+        }
+        .menu-subtitle {
+            color: #f1c40f; /* Amarelo dourado */
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px #000;
+            margin-bottom: 15px;
+        }
+        #play-button {
+            background-color: #2ecc71; /* Verde claro */
+        }
+        #play-button:hover {
+            background-color: #27ae60; /* Verde um pouco mais escuro */
+            transform: scale(1.05);
+        }
+        /* --- FIM DOS ESTILOS MODIFICADOS --- */
+
         .menu-button { font-size: 28px; padding: 18px 35px; margin: 12px; width: 350px; cursor: pointer; border: 2px solid #fff; background-color: #3498db; color: white; border-radius: 5px; transition: all 0.2s; }
         .menu-button:hover { background-color: #4aa8e9; transform: scale(1.05); }
         #reset-button { background-color: #c0392b; } #reset-button:hover { background-color: #e74c3c; }
@@ -61,7 +91,15 @@
 </head>
 <body>
     <div id="main-container" class="hidden"> <div id="game-container"> <div id="game-area"><div id="player" class="entity"></div> <div id="choice-overlay" class="hidden"></div> </div> <div id="room-message" class="hidden"></div> </div> <div id="ui-column"> <div id="status-board"> <div>Sala: <span id="current-room">0</span></div> <div>Vida: <span id="player-health">10</span></div> <div>Escudo: <span id="player-shield">0</span></div> <div>Ataque: <span id="player-attack">1</span></div> <div>Moedas: <span id="player-coins">30</span></div> </div> <div id="inventory-display"><h3 id="inventory-title">Itens</h3><div id="inventory-list"></div></div> </div> </div>
-    <div id="main-menu" class="screen"> <h1>A Lenda do Prato Equilibrado</h1> <button id="play-button" class="menu-button">Jogar</button> <button id="encyclopedia-button" class="menu-button">Enciclopédia</button> <button id="cards-button" class="menu-button hidden">Cartas</button> <button id="reset-button" class="menu-button hidden">Encerrar Jornada</button> </div>
+    
+    <div id="main-menu" class="screen">
+        <img src="imagens/logo.png" alt="A Lenda do Prato Equilibrado" id="game-logo">
+        <p class="menu-subtitle">Você caminha pela Floresta das Frutas…</p>
+        <button id="play-button" class="menu-button">Jogar</button>
+        <button id="encyclopedia-button" class="menu-button">Enciclopédia</button>
+        <button id="cards-button" class="menu-button hidden">Cartas</button>
+        <button id="reset-button" class="menu-button hidden">Encerrar Jornada</button>
+    </div>
     <div id="game-over-screen" class="screen hidden"> <h1>Fim de Jogo</h1> <button id="return-to-menu-button" class="menu-button">Voltar ao Menu</button> </div>
     <div id="encyclopedia-screen" class="screen hidden"> <div id="encyclopedia-header"> <h1>Enciclopédia de Alimentos</h1> <button id="close-encyclopedia-button" class="menu-button" style="width: auto; font-size: 20px; padding: 10px 20px;">Voltar</button> </div> <div id="encyclopedia-filters"> <button class="filter-button active" data-filter="all">Todos</button> <button class="filter-button" data-filter="reguladores">Reguladores (Frutas/Hortaliças)</button> <button class="filter-button" data-filter="construtores">Construtores (Proteínas/Laticínios)</button> <button class="filter-button" data-filter="energeticos">Energéticos (Carboidratos)</button> <button class="filter-button" data-filter="especiais">Especiais</button> </div> <div id="encyclopedia-list"></div> </div>
     <div id="cards-screen" class="screen hidden"> <div id="cards-header"> <h1>Minhas Cartas</h1> <button id="close-cards-button" class="menu-button" style="width: auto; font-size: 20px; padding: 10px 20px;">Voltar</button> </div> <div id="cards-list"></div> </div>
