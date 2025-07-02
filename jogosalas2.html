@@ -103,18 +103,7 @@
 
         /* Estilos das Entidades do Jogo */
         .enemy { width: 60px; height: 60px; background-image: url('imagens/inimigo_uva2.png'); }
-        .enemy-pera { width: 60px; height: 60px; background-image: url('imagens/inimigo_pera.png'); }
-        .enemy-maca { width: 60px; height: 60px; background-image: url('imagens/inimigo_maca.png'); }
-        .enemy-maca-verde { width: 60px; height: 60px; background-image: url('imagens/inimigo_maca_verde.png'); }
-        .enemy-banana { width: 60px; height: 60px; background-image: url('imagens/inimigo_banana.png'); }
-
-        .pera-link { position: absolute; height: 4px; background-color: #2ecc71; z-index: 5; transform-origin: left center; opacity: 0.7; box-shadow: 0 0 8px #2ecc71; }
-
         .projectile,.pasta-projectile,.orange-projectile,.friend-projectile,.laser-beam, .bee-projectile{width:15px;height:5px;background-color:#00aaff;box-shadow: 0 0 5px #00aaff;position:absolute}
-        .enemy-projectile { position: absolute; background-size: contain; background-repeat: no-repeat; background-position: center; }
-        .maca-projectile { width: 24px; height: 24px; background-image: url('imagens/tiro_maca.png'); }
-        .maca-verde-projectile { width: 24px; height: 24px; background-image: url('imagens/tiro_maca_verde.png'); }
-
         .strawberry-shot { background-color: #e74c3c; background-image: url('imagens/morango_tiro.png'); width: 16px; height: 16px; }
         .pasta-projectile{background-color:#e6e6e6}.orange-projectile{background-color:#e67e22;border-radius:5px}.friend-projectile{background-color:#d35400;border-radius:2px}.laser-beam{background-color:#ff00ff;box-shadow:0 0 10px #ff00ff;height:3px}
         .bee-projectile { width: 12px; height: 12px; background-color: #f1c40f; border-radius: 50%; border: 2px solid black; }
@@ -168,7 +157,6 @@
     const keys={ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false};
     let activeEnemies = [], activeProjectiles = [], activeCoins = [], activeFood = [], activeCompanions = [];
     let activePastaProjectiles = [], activeOrangeProjectiles = [], activeFriendProjectiles = [], activeBeeProjectiles = [];
-    let activeEnemyProjectiles = [], activePeraLinks = []; // NOVO: Projéteis dos inimigos e links do Pera
     let strawberryFireTimer = 0;
 
     function getNewPlayerState() {
@@ -401,118 +389,8 @@
     function showRoomMessage(text, duration) { refs.roomMessage.textContent = text; refs.roomMessage.classList.remove('hidden'); if (duration) setTimeout(() => refs.roomMessage.classList.add('hidden'), duration); }
     function createEntity(className, id=null){ const div=document.createElement('div'); div.className=`entity ${className}`; if(id) div.id=id; refs.gameArea.appendChild(div); return div; }
     function checkCollision(d1, d2){ if(!d1 || !d2) return false; const r1=d1.getBoundingClientRect(), r2=d2.getBoundingClientRect(); return !(r1.right<r2.left || r1.left>r2.right || r1.bottom<r2.top || r1.top>r2.bottom); }
-    function findNearestEnemy(source, excludeSelf = false){ let nearest=null, minDist=Infinity; activeEnemies.forEach(e=>{ if(excludeSelf && e === source) return; const dist = Math.hypot(e.x - source.x, e.y - source.y); if(dist < minDist){ minDist=dist; nearest=e; } }); return nearest; }
-    
-    function createEnemy(type, options = {}) {
-        const roomMultiplier = Math.pow(2, Math.floor(currentRoom / 5));
-        let e = {
-            id: Date.now() + Math.random(),
-            type: type,
-            x: Math.random() * 740,
-            y: Math.random() * 540,
-            slowFactor: 1,
-            isPoisoned: false,
-            poisonTimer: 0,
-            isInvulnerable: false,
-            linkedTo: null,
-            linkedBy: null,
-            fireTimer: 2 + Math.random() * 2 // Padrão para atiradores
-        };
-
-        switch (type) {
-            case 'uva':
-                e.div = createEntity('enemy');
-                e.speed = 1 + (currentRoom * 0.1);
-                e.health = (3 + currentRoom) * roomMultiplier;
-                e.damage = 1 * roomMultiplier;
-                e.dx = (Math.random() - .5) * 2;
-                e.dy = (Math.random() - .5) * 2;
-                break;
-            case 'banana':
-                e.div = createEntity('enemy-banana');
-                e.speed = 0.8 + (currentRoom * 0.05); // Balancear velocidade
-                e.health = 4 * roomMultiplier;
-                e.damage = 2 * roomMultiplier;
-                // Posição nas bordas
-                if (Math.random() > 0.5) {
-                    e.x = Math.random() > 0.5 ? -30 : 830; e.y = Math.random() * 600;
-                } else {
-                    e.x = Math.random() * 800; e.y = Math.random() > 0.5 ? -30 : 630;
-                }
-                break;
-            case 'pera':
-                e.div = createEntity('enemy-pera');
-                e.speed = 0.5;
-                e.health = 50 * roomMultiplier;
-                e.damage = 0;
-                e.dx = (Math.random() - .5);
-                e.dy = (Math.random() - .5);
-                break;
-            case 'maca':
-                e.div = createEntity('enemy-maca');
-                e.speed = 1.5;
-                e.health = 5 * roomMultiplier;
-                e.damage = 3 * roomMultiplier;
-                e.x = Math.random() * 700 + 50;
-                e.y = 50 + Math.random() * 50;
-                e.dx = Math.random() > 0.5 ? 1 : -1;
-                break;
-            case 'maca_verde':
-                e.div = createEntity('enemy-maca-verde');
-                e.speed = 1;
-                e.health = 1 * roomMultiplier; // Inicia com 1, mas escala rápido
-                e.damage = 3 * roomMultiplier;
-                e.y = Math.random() * 500 + 50;
-                e.x = Math.random() > 0.5 ? 50 : 750;
-                e.dy = Math.random() > 0.5 ? 1 : -1;
-                break;
-        }
-
-        let dist = 0;
-        do {
-            dist = Math.hypot(e.x - playerState.x, e.y - playerState.y);
-            if (dist < 250) { // Reposiciona se nascer muito perto
-                 e.x = Math.random() * 740; e.y = Math.random() * 540;
-            }
-        } while (dist < 250);
-        
-        activeEnemies.push(e);
-        return e;
-    }
-
-    function createEnemyProjectile(source, isHoming = false) {
-        const p = {
-            div: createEntity(`enemy-projectile ${source.type === 'maca' ? 'maca-projectile' : 'maca-verde-projectile'}`),
-            x: source.x + 30,
-            y: source.y + 30,
-            damage: source.damage,
-            isHoming: isHoming,
-        };
-
-        const target = playerState;
-        const dir = { x: target.x + 32 - p.x, y: target.y + 32 - p.y };
-        const mag = Math.hypot(dir.x, dir.y) || 1;
-        p.speed = isHoming ? 2.5 : 5; // Projétil teleguiado é mais lento
-        p.dx = dir.x / mag;
-        p.dy = dir.y / mag;
-        
-        activeEnemyProjectiles.push(p);
-    }
-    
-    function createPeraLink(pera, target) {
-        if (!pera || !target) return;
-        pera.linkedTo = target.id;
-        target.linkedBy = pera.id;
-        target.isInvulnerable = true;
-        const link = {
-            id: Date.now() + Math.random(),
-            div: createEntity('pera-link'),
-            peraId: pera.id,
-            targetId: target.id
-        };
-        activePeraLinks.push(link);
-    }
-
+    function findNearestEnemy(source){ let nearest=null, minDist=Infinity; activeEnemies.forEach(e=>{ const dist = Math.hypot(e.x - source.x, e.y - source.y); if(dist < minDist){ minDist=dist; nearest=e; } }); return nearest; }
+    function createEnemy(health){ const e={div:createEntity('enemy'),x:0,y:0,speed:1+(currentRoom*0.1),health:health,dx:(Math.random()-.5)*2,dy:(Math.random()-.5)*2,slowFactor:1,isPoisoned:false,poisonTimer:0}; let dist=0; do { e.x=Math.random()*740; e.y=Math.random()*540; dist=Math.hypot(e.x-playerState.x, e.y-playerState.y); } while(dist < 250); activeEnemies.push(e); }
     function createProjectile(dir, offsetY=0){ const offsetX = dir.y * offsetY; const p={div:createEntity('projectile'), x:playerState.x+24+offsetX, y:playerState.y+24-(dir.x*offsetY), speed:8, dx:dir.x, dy:dir.y, damage:playerState.attack }; p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; activeProjectiles.push(p); }
     function createFood(){ let f=[...foodTypes]; if(playerState.canSpawnEggs) f.push(...specialFood); if(playerState.hasCornUpgrade && Math.random() < playerState.cornSpawnChance) { f.push(...newRoomFood); } if(f.length===0) return; const d=f[Math.floor(Math.random()*f.length)]; const e={div:createEntity(`item ${d.name}`), effect:()=>{d.effect(); updateStatusBoard();}}; e.div.style.left=Math.random()*768+'px'; e.div.style.top=Math.random()*568+'px'; activeFood.push(e); }
     function createCoin(x, y) { const c = { div: createEntity('coin'), x: x, y: y }; c.div.style.left = c.x + 'px'; c.div.style.top = c.y + 'px'; activeCoins.push(c); }
@@ -573,20 +451,20 @@
 
             if (card.details) {
                 cardElement.innerHTML = `
-                        <div class="npc-card-header">
-                            <div class="npc-card-emoji">${card.details.emoji}</div>
-                            <h3 class="npc-card-title">${card.name}</h3>
-                            <p class="npc-card-subtitle">${card.details.title}</p>
-                        </div>
-                        <div class="npc-card-body">
-                            <div class="npc-card-detail"><strong>Origem:</strong> ${card.details.origin}</div>
-                            <div class="npc-card-detail"><strong>Encontrado em:</strong> ${card.details.location}</div>
-                            <div class="npc-card-detail"><strong>Comida Favorita:</strong> ${card.details.favoriteFood}</div>
-                            <div class="npc-card-detail"><strong>Grupos Favoritos:</strong> ${card.details.favoriteGroups || 'N/A'}</div>
-                            <div class="npc-card-detail"><strong>Cor Favorita:</strong> ${card.details.favoriteColor || 'N/A'}</div>
-                            <div class="npc-card-detail"><strong>Relações:</strong> ${card.details.relationships}</div>
-                            <div class="npc-card-detail"><strong>Filosofia:</strong> <em>${card.details.philosophy}</em></div>
-                        </div>
+                    <div class="npc-card-header">
+                        <div class="npc-card-emoji">${card.details.emoji}</div>
+                        <h3 class="npc-card-title">${card.name}</h3>
+                        <p class="npc-card-subtitle">${card.details.title}</p>
+                    </div>
+                    <div class="npc-card-body">
+                        <div class="npc-card-detail"><strong>Origem:</strong> ${card.details.origin}</div>
+                        <div class="npc-card-detail"><strong>Encontrado em:</strong> ${card.details.location}</div>
+                        <div class="npc-card-detail"><strong>Comida Favorita:</strong> ${card.details.favoriteFood}</div>
+                        <div class="npc-card-detail"><strong>Grupos Favoritos:</strong> ${card.details.favoriteGroups || 'N/A'}</div>
+                        <div class="npc-card-detail"><strong>Cor Favorita:</strong> ${card.details.favoriteColor || 'N/A'}</div>
+                        <div class="npc-card-detail"><strong>Relações:</strong> ${card.details.relationships}</div>
+                        <div class="npc-card-detail"><strong>Filosofia:</strong> <em>${card.details.philosophy}</em></div>
+                    </div>
                 `;
             } else {
                 cardElement.classList.add('card-item-simple');
@@ -655,41 +533,13 @@
         showRoomMessage(`Sala ${currentRoom}`, 1500);
         playerState.potatoUsedThisRoom = false;
         playerState.tookDamageThisRoom = false;
-        
-        const entitiesToClear = refs.gameArea.querySelectorAll('.enemy, .enemy-pera, .enemy-maca, .enemy-maca-verde, .enemy-banana, .pera-link, .coin, .item, .projectile, .pasta-projectile, .orange-projectile, .friend-projectile, .laser-beam, .bee-projectile, .enemy-projectile');
+        const entitiesToClear = refs.gameArea.querySelectorAll('.enemy, .coin, .item, .projectile, .pasta-projectile, .orange-projectile, .friend-projectile, .laser-beam, .bee-projectile');
         entitiesToClear.forEach(e => e.remove());
-
-        activeFood.length=0; activeCoins.length=0; activeEnemies.length=0; activeProjectiles.length=0; activePastaProjectiles.length=0; activeOrangeProjectiles.length=0; activeFriendProjectiles.length=0; activeBeeProjectiles.length=0; activeEnemyProjectiles.length = 0; activePeraLinks.length = 0;
-        
+        activeFood.length=0; activeCoins.length=0; activeEnemies.length=0; activeProjectiles.length=0; activePastaProjectiles.length=0; activeOrangeProjectiles.length=0; activeFriendProjectiles.length=0; activeBeeProjectiles.length=0;
         playerState.companionsToSummon.forEach(type => { if(!activeCompanions.some(c => c.type === type)) createCompanion(type); });
-
-        // --- LÓGICA DE SPAWN DE INIMIGOS ---
-        const enemyPool = ['uva'];
-        if (currentRoom >= 2) enemyPool.push('banana');
-        if (currentRoom >= 4) enemyPool.push('maca');
-        if (currentRoom >= 6) enemyPool.push('pera');
-        if (currentRoom >= 8) enemyPool.push('maca_verde');
-
-        const numEnemies = 2 + Math.floor(currentRoom / 2);
-        for(let i=0; i<numEnemies; i++) {
-            const randomType = enemyPool[Math.floor(Math.random() * enemyPool.length)];
-            
-            if (randomType === 'pera' && i < numEnemies - 1) {
-                const pera = createEnemy('pera');
-                // Pera precisa de um aliado, vamos criar um que não seja outro pera
-                const nonPeraPool = enemyPool.filter(t => t !== 'pera');
-                const allyType = nonPeraPool[Math.floor(Math.random() * nonPeraPool.length)] || 'uva';
-                const ally = createEnemy(allyType);
-                createPeraLink(pera, ally);
-                i++; // Consumiu dois spawns
-            } else if (randomType !== 'pera') {
-                createEnemy(randomType);
-            } else { // Se o Pera for o último a ser spawnado, troca por uma uva
-                createEnemy('uva');
-            }
-        }
-        // --- FIM DA LÓGICA DE SPAWN ---
-
+        const numEnemies = 3 + currentRoom * 2;
+        const enemyHealth = 3 + currentRoom;
+        for(let i=0; i<numEnemies; i++) createEnemy(enemyHealth);
         const numFoods = 1 + Math.floor(Math.random()*2);
         for(let i=0; i<numFoods; i++) createFood();
         updateStatusBoard();
@@ -732,101 +582,13 @@
                 if (playerState.strawberryShotCount > 0) { strawberryFireTimer -= deltaTime; if (strawberryFireTimer <= 0) { for (let i = 0; i < playerState.strawberryShotCount; i++) { createStrawberryProjectile(); } strawberryFireTimer = 2.5; } }
                 if (playerState.honeyStacks > 0) { playerState.beeSummonTimer -= deltaTime; if (playerState.beeSummonTimer <= 0) { for (let i = 0; i < 4; i++) createBeeProjectile(); playerState.beeSummonTimer = 30; } }
                 updateCompanions(deltaTime);
-
-                // ATUALIZAÇÃO DOS INIMIGOS
-                for(let i=activeEnemies.length-1; i>=0; i--){
-                    const e = activeEnemies[i];
-                    const s = e.speed * e.slowFactor;
-
-                    // Lógica de movimento por tipo
-                    switch(e.type) {
-                        case 'uva':
-                        case 'pera':
-                            e.x += e.dx * s; e.y += e.dy * s;
-                            if(e.x<=0||e.x>=740) e.dx*=-1; if(e.y<=0||e.y>=540) e.dy*=-1;
-                            break;
-                        case 'banana':
-                            const dirToPlayer = { x: playerState.x - e.x, y: playerState.y - e.y };
-                            const mag = Math.hypot(dirToPlayer.x, dirToPlayer.y) || 1;
-                            e.x += (dirToPlayer.x / mag) * s;
-                            e.y += (dirToPlayer.y / mag) * s;
-                            break;
-                        case 'maca':
-                            e.x += e.dx * s;
-                            if(e.x<=0||e.x>=740) e.dx*=-1;
-                            e.fireTimer -= deltaTime;
-                            if (e.fireTimer <= 0) { createEnemyProjectile(e, false); e.fireTimer = 3 + Math.random() * 2; }
-                            break;
-                        case 'maca_verde':
-                            e.y += e.dy * s;
-                             if(e.y<=0||e.y>=540) e.dy*=-1;
-                            e.fireTimer -= deltaTime;
-                            if (e.fireTimer <= 0) { createEnemyProjectile(e, true); e.fireTimer = 4 + Math.random() * 2; }
-                            break;
-                    }
-                    
-                    e.div.style.left = e.x+'px'; e.div.style.top = e.y+'px';
-                    
-                    if(playerState.watermelonOrb.damage > 0 && !e.isInvulnerable && document.getElementById('watermelon-orb') && checkCollision(document.getElementById('watermelon-orb'), e.div)) e.health -= playerState.watermelonOrb.damage * deltaTime;
-                    if(e.isPoisoned && !e.isInvulnerable) { e.health -= playerState.poisonDPS * deltaTime; e.poisonTimer -= deltaTime; if(e.poisonTimer <= 0) e.isPoisoned = false; }
-                    if(checkCollision(refs.player, e.div)) { handlePlayerDamage(e.damage); if(playerState.thornsDamage > 0 && !e.isInvulnerable) e.health -= playerState.thornsDamage; }
-                    if(e.health <= 0){
-                        createCoin(e.x, e.y);
-                        // Se o inimigo morto era um Pera ou estava ligado a um, quebra o link
-                        if (e.linkedBy) { const other = activeEnemies.find(en => en.id === e.linkedBy); if (other) other.linkedTo = null; }
-                        if (e.linkedTo) { const other = activeEnemies.find(en => en.id === e.linkedTo); if (other) { other.linkedBy = null; other.isInvulnerable = false;} }
-                        e.div.remove();
-                        activeEnemies.splice(i,1);
-                    }
-                }
-
-                // ATUALIZAÇÃO DOS PROJÉTEIS DO JOGADOR
-                const moveAndCheck = (projArray, onHit) => { for(let i=projArray.length-1; i>=0; i--){ let p = projArray[i]; if((playerState.hasHomingShots && projArray === activeProjectiles) || p.isHoming || p.div.classList.contains('strawberry-shot')){ const t=findNearestEnemy(p); if(t){ const d={x:t.x-p.x, y:t.y-p.y}; const m=Math.hypot(d.x,d.y)||1; p.dx=d.x/m; p.dy=d.y/m; }} p.x += p.dx * p.speed; p.y += p.dy * p.speed; if(p.x>800||p.x<0||p.y>600||p.y<0){p.div.remove(); projArray.splice(i,1); continue;} p.div.style.left=p.x+'px'; p.div.style.top=p.y+'px'; for(let j=activeEnemies.length-1; j>=0; j--){ const e = activeEnemies[j]; if(checkCollision(p.div, e.div)){ if (e.isInvulnerable) { p.div.remove(); projArray.splice(i,1); break; } p.div.remove(); projArray.splice(i,1); onHit(e,p); break; } } } };
+                for(let i=activeEnemies.length-1; i>=0; i--){ const e=activeEnemies[i]; const s=e.speed*e.slowFactor; e.x+=e.dx*s; e.y+=e.dy*s; if(e.x<=0||e.x>=740)e.dx*=-1; if(e.y<=0||e.y>=540)e.dy*=-1; e.div.style.left=e.x+'px'; e.div.style.top=e.y+'px'; if(playerState.watermelonOrb.damage > 0 && document.getElementById('watermelon-orb') && checkCollision(document.getElementById('watermelon-orb'), e.div)) e.health -= playerState.watermelonOrb.damage * deltaTime; if(e.isPoisoned) { e.health -= playerState.poisonDPS * deltaTime; e.poisonTimer -= deltaTime; if(e.poisonTimer <= 0) e.isPoisoned = false; } if(checkCollision(refs.player, e.div)) { handlePlayerDamage(1); if(playerState.thornsDamage > 0) e.health -= playerState.thornsDamage; } if(e.health <= 0){ createCoin(e.x, e.y); e.div.remove(); activeEnemies.splice(i,1); } }
+                const moveAndCheck = (projArray, onHit) => { for(let i=projArray.length-1; i>=0; i--){ let p = projArray[i]; if((playerState.hasHomingShots && projArray === activeProjectiles) || p.isHoming || p.div.classList.contains('strawberry-shot')){ const t=findNearestEnemy(p); if(t){ const d={x:t.x-p.x, y:t.y-p.y}; const m=Math.hypot(d.x,d.y)||1; p.dx=d.x/m; p.dy=d.y/m; }} p.x += p.dx * p.speed; p.y += p.dy * p.speed; if(p.x>800||p.x<0||p.y>600||p.y<0){p.div.remove(); projArray.splice(i,1); continue;} p.div.style.left=p.x+'px'; p.div.style.top=p.y+'px'; for(let j=activeEnemies.length-1; j>=0; j--){ const e = activeEnemies[j]; if(checkCollision(p.div, e.div)){ p.div.remove(); projArray.splice(i,1); onHit(e,p); break; } } } };
                 moveAndCheck(activeProjectiles, (e,p)=>{ e.health -= p.damage; if(playerState.hasPoisonUpgrade && Math.random() < 0.5){ e.isPoisoned=true; e.poisonTimer=3;} });
                 moveAndCheck(activePastaProjectiles, (e,p)=>{ e.slowFactor=1-playerState.pastaSlowFactor; setTimeout(()=>e.slowFactor=1, 2000); e.health -= 0.1; });
                 moveAndCheck(activeOrangeProjectiles, (e,p)=>{ e.health -= p.damage; });
                 moveAndCheck(activeFriendProjectiles, (e,p)=>{ e.health -= p.damage; });
                 moveAndCheck(activeBeeProjectiles, (e,p)=>{ e.health -= p.damage; });
-
-                // ATUALIZAÇÃO DOS PROJÉTEIS DOS INIMIGOS
-                for (let i = activeEnemyProjectiles.length - 1; i >= 0; i--) {
-                    let p = activeEnemyProjectiles[i];
-                    if (p.isHoming) {
-                        const dirToPlayer = { x: playerState.x + 32 - p.x, y: playerState.y + 32 - p.y };
-                        const mag = Math.hypot(dirToPlayer.x, dirToPlayer.y) || 1;
-                        p.dx = dirToPlayer.x / mag; p.dy = dirToPlayer.y / mag;
-                    }
-                    p.x += p.dx * p.speed; p.y += p.dy * p.speed;
-                    if (p.x > 820 || p.x < -20 || p.y > 620 || p.y < -20) { p.div.remove(); activeEnemyProjectiles.splice(i, 1); continue; }
-                    p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px';
-                    if (checkCollision(p.div, refs.player)) {
-                        handlePlayerDamage(p.damage);
-                        p.div.remove();
-                        activeEnemyProjectiles.splice(i, 1);
-                    }
-                }
-
-                // ATUALIZAÇÃO DOS LINKS DO PERA
-                for (let i = activePeraLinks.length - 1; i >= 0; i--) {
-                    const link = activePeraLinks[i];
-                    const pera = activeEnemies.find(e => e.id === link.peraId);
-                    const target = activeEnemies.find(e => e.id === link.targetId);
-                    if (!pera || !target) {
-                        if (target) target.isInvulnerable = false;
-                        link.div.remove();
-                        activePeraLinks.splice(i, 1);
-                        continue;
-                    }
-                    const p1 = { x: pera.x + 30, y: pera.y + 30 };
-                    const p2 = { x: target.x + 30, y: target.y + 30 };
-                    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
-                    link.div.style.width = dist + 'px';
-                    link.div.style.left = p1.x + 'px';
-                    link.div.style.top = p1.y + 'px';
-                    link.div.style.transform = `rotate(${angle}deg)`;
-                }
-
                 for(let i=activeFood.length-1; i>=0; i--){ const f=activeFood[i]; if(checkCollision(refs.player, f.div)){f.effect();f.div.remove();activeFood.splice(i,1);}}
                 for(let i=activeCoins.length-1; i>=0; i--){ const c=activeCoins[i]; if(checkCollision(refs.player, c.div)){playerState.coins+=playerState.hasGrapesUpgrade?2:1; c.div.remove(); activeCoins.splice(i,1); updateStatusBoard();}}
                 const cheese = activeCompanions.find(c=>c.type==='cheese'); if(cheese) { [...activeFood, ...activeCoins].forEach((item, i, arr) => { if(checkCollision(cheese.div, item.div)){ if(item.effect) item.effect(); else playerState.coins+=playerState.hasGrapesUpgrade?2:1; item.div.remove(); arr.splice(i,1); updateStatusBoard(); } }); }
