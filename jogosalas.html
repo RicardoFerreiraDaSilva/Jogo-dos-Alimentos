@@ -23,12 +23,12 @@
         #main-menu { background-image: url('imagens/bosque_coragem.png'); background-size: cover; background-position: center; overflow-y: auto; justify-content: flex-start; padding-top: 20px; padding-bottom: 20px; }
         #game-logo { max-width: 350px; margin-bottom: 1px; }
         .menu-subtitle { color: #f1c40f; font-size: 24px; font-weight: bold; text-shadow: 1px 1px 3px #000; margin-bottom: 15px; }
-        #play-button { background-color: #2ecc71; }
-        #play-button:hover { background-color: #27ae60; transform: scale(1.05); }
         .menu-button { font-size: 28px; padding: 18px 35px; margin: 12px; width: 350px; cursor: pointer; border: 2px solid #fff; background-color: #3498db; color: white; border-radius: 5px; transition: all 0.2s; }
         .menu-button:hover { background-color: #4aa8e9; transform: scale(1.05); }
+        /* --- MUDANÇA DE COR DO BOTÃO JOGAR --- */
+        #play-button { background-color: #27ae60; } #play-button:hover { background-color: #2ecc71; }
         #reset-button { background-color: #c0392b; } #reset-button:hover { background-color: #e74c3c; }
-        #room-message{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:700;color:#fff;text-shadow:2px 2px 4px #000;z-index:100}
+        #room-message{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:700;color:#fff;text-shadow:2px 2px 4px #000;z-index:100; text-align: center; white-space: pre-wrap;}
         #choice-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; z-index: 150; }
         .choice-button { width: 80%; max-width: 600px; padding: 20px; font-size: 18px; cursor: pointer; background-color: #2c3e50; color: white; border: 2px solid #bda25a; border-radius: 10px; text-align: center; }
         .choice-button:hover { background-color: #34495e; }
@@ -41,6 +41,8 @@
         .filter-button { padding: 10px 15px; cursor: pointer; background-color: #2c3e50; border: 2px solid #bda25a; border-radius: 5px; font-size: 14px; }
         .filter-button:hover, .filter-button.active { background-color: #34495e; }
         #encyclopedia-list { width: 100%; max-width: 1000px; height: calc(100vh - 220px); overflow-y: auto; background-color: #1c2833; padding: 10px; border-radius: 5px; }
+        .encyclopedia-group-desc { padding: 15px; background-color: #17202a; border-radius: 5px; margin-bottom: 10px; border-left: 5px solid #bda25a; }
+        .encyclopedia-group-desc h4 { margin: 0 0 5px 0; font-size: 18px; color: #f1c40f; }
         .encyclopedia-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #34495e; padding-left: 15px; }
         .encyclopedia-item.rarity-comum { border-left: 5px solid #3498db; }
         .encyclopedia-item.rarity-incomum { border-left: 5px solid #2ecc71; }
@@ -51,42 +53,75 @@
         .encyclopedia-item-details { display: flex; flex-direction: column; }
         .encyclopedia-item-title { font-size: 18px; font-weight: bold; }
         .rarity-comum { color: #ecf0f1; } .rarity-incomum { color: #2ecc71; } .rarity-raro { color: #9b59b6; } .rarity-lendario { color: #e74c3c; } .rarity-especial { color: #f1c40f; font-weight: bold; }
+        
+        /* Estilos para as Cartas */
+        #cards-list { width: 100%; max-width: 1200px; height: calc(100vh - 120px); overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px; }
+        .card-item { background-color: #1c2833; border: 2px solid #4a6a8a; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; transition: all 0.2s ease-in-out; }
+        .card-item:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0, 194, 255, 0.3); border-color: #00c2ff; }
+        .card-item-simple { border-bottom: 1px solid #00c2ff; }
+        .card-item-title { color: #00c2ff; font-size: 18px; font-weight: bold; }
+        .npc-card-header { text-align: center; margin-bottom: 15px; }
+        .npc-card-emoji { font-size: 64px; }
+        .npc-card-title { font-size: 24px; margin-top: 10px; color: #f1c40f; }
+        .npc-card-subtitle { font-size: 16px; font-style: italic; opacity: 0.8; margin-top: 5px; }
+        .npc-card-body { display: flex; flex-direction: column; gap: 8px; }
+        .npc-card-detail { font-size: 14px; }
+        .npc-card-detail strong { color: #3498db; }
 
-        /* Estilos das Entidades do Jogo */
+        /* Estilos de Entidades e Projéteis */
         .enemy { width: 60px; height: 60px; background-image: url('imagens/inimigo_uva2.png'); }
         .enemy-pera { width: 60px; height: 60px; background-image: url('imagens/inimigo_pera.png'); }
         .enemy-maca { width: 60px; height: 60px; background-image: url('imagens/inimigo_maca.png'); }
         .enemy-maca-verde { width: 60px; height: 60px; background-image: url('imagens/inimigo_maca_verde.png'); }
         .enemy-banana { width: 60px; height: 60px; background-image: url('imagens/inimigo_banana.png'); }
         .pera-link { position: absolute; height: 4px; background-color: #2ecc71; z-index: 5; transform-origin: left center; opacity: 0.7; box-shadow: 0 0 8px #2ecc71; }
-        
-        /* --- MUDANÇAS GRÁFICAS --- */
         .projectile { width: 32px; height: 32px; background-image: url('imagens/tiro_heroi.png'); position:absolute; }
         .strawberry-shot { width: 32px; height: 32px; background-image: url('imagens/morango.png'); position: absolute; }
         .watermelon-orb { width:64px; height:64px; background-image: url('imagens/melancia.png'); opacity:.8; z-index:9; }
-        .ice-cream-friend { width:64px; height:64px; background-image:url(imagens/sorvete.png); }
-        .cheese-friend { width:64px; height:64px; background-image:url(imagens/queijo.png); }
-        /* --- FIM DAS MUDANÇAS GRÁFICAS --- */
-        
-        .pasta-projectile,.orange-projectile,.friend-projectile, .bee-projectile{width:15px;height:5px;background-color:#00aaff;box-shadow: 0 0 5px #00aaff;position:absolute}
+        .pasta-projectile {width:15px;height:5px;background-color:#e6e6e6;box-shadow: 0 0 5px #e6e6e6;position:absolute}
+        .friend-projectile {width:15px;height:5px;background-color:#d35400;border-radius:2px;box-shadow: 0 0 5px #d35400;position:absolute}
+        .orange-projectile { width: 32px; height: 32px; background-image: url('imagens/laranja.png'); position:absolute; }
+        .bee-projectile { width: 32px; height: 32px; background-image: url('imagens/abelha.png'); position: absolute; }
         .enemy-projectile { position: absolute; background-size: contain; background-repeat: no-repeat; background-position: center; }
         .maca-projectile { width: 24px; height: 24px; background-image: url('imagens/tiro_maca.png'); }
         .maca-verde-projectile { width: 24px; height: 24px; background-image: url('imagens/tiro_maca_verde.png'); }
-        .pasta-projectile{background-color:#e6e6e6}.orange-projectile{background-color:#e67e22;border-radius:5px}.friend-projectile{background-color:#d35400;border-radius:2px}
-        .laser-beam{ background: linear-gradient(90deg, rgba(255,0,255,0), rgba(255,0,255,1), rgba(255,0,255,0)); box-shadow:0 0 15px #ff00ff; height:5px; transform-origin: left center; }
-        .bee-projectile { width: 12px; height: 12px; background-color: #f1c40f; border-radius: 50%; border: 2px solid black; }
+        .laser-beam{ background: linear-gradient(90deg, rgba(255,0,255,0), rgba(255,0,255,1), rgba(255,0,255,0)); box-shadow:0 0 15px #ff00ff; height:5px; transform-origin: left center; z-index: 9; }
         .coin{width:30px;height:30px;background-image:url('imagens/moedas.png');background-size:contain;background-repeat:no-repeat;}
-        .item{width:32px;height:32px;}
+        .item{width:64px;height:64px; background-size: contain;}
         .companion{border:none;background-color:transparent;background-size:contain;background-repeat:no-repeat;background-position:center;z-index:8}
-        .chocolate-friend{width:64px;height:64px;background-image:url(imagens/chocolate64x64.png)}.dragon-friend{width:64px;height:64px;background-image:url(imagens/Dragonpitaya64x64.png)}.yogurt-friend{width:64px;height:64px;background-image:url(imagens/iourgute64x64.png)}
+        .chocolate-friend{width:64px;height:64px;background-image:url(imagens/chocolate64x64.png)}
+        .dragon-friend{width:64px;height:64px;background-image:url(imagens/Dragonpitaya64x64.png)}
+        .yogurt-friend{width:64px;height:64px;background-image:url(imagens/iourgute64x64.png)}
         .abobora-friend{width:64px;height:64px;background-image:url(imagens/abobora.png)}
+        .ice-cream-friend { width:64px; height:64px; background-image:url(imagens/sorvete.png); }
+        .cheese-friend { width:64px; height:64px; background-image:url(imagens/queijo.png); }
         .banana{background-image:url(imagens/banana_32x32.png)}.leite{background-image:url(imagens/Leite_32x32.png)}.cenoura{background-image:url(imagens/cenoura_32x32.png)}.couve{background-image:url(imagens/couve_32x32.png)}.ovo{background-image:url(imagens/Ovo_32x32.png)}
         .milho{background-image:url(imagens/milho.png)}
     </style>
 </head>
 <body>
-    <div id="main-container" class="hidden"> <div id="game-container"> <div id="game-area"><div id="player" class="entity"></div> <div id="choice-overlay" class="hidden"></div> </div> <div id="room-message" class="hidden"></div> </div> <div id="ui-column"> <div id="status-board"> <div>Sala: <span id="current-room">0</span></div> <div>Vida: <span id="player-health">10</span></div> <div>Escudo: <span id="player-shield">0</span></div> <div>Ataque: <span id="player-attack">1</span></div> <div>Moedas: <span id="player-coins">30</span></div> </div> <div id="inventory-display"><h3 id="inventory-title">Itens</h3><div id="inventory-list"></div></div> </div> </div>
-    
+    <div id="main-container" class="hidden">
+        <div id="game-container">
+            <div id="game-area">
+                <div id="player" class="entity"></div>
+                <div id="choice-overlay" class="hidden"></div>
+            </div>
+            <div id="room-message" class="hidden"></div>
+        </div>
+        <div id="ui-column">
+            <div id="status-board">
+                <div>Sala: <span id="current-room">0</span></div>
+                <div>Vida: <span id="player-health">10</span></div>
+                <div>Escudo: <span id="player-shield">0</span></div>
+                <div>Ataque: <span id="player-attack">1</span></div>
+                <div>Moedas: <span id="player-coins">30</span></div>
+            </div>
+            <div id="inventory-display">
+                <h3 id="inventory-title">Itens</h3>
+                <div id="inventory-list"></div>
+            </div>
+        </div>
+    </div>
     <div id="main-menu" class="screen">
         <img src="imagens/logo.png" alt="A Lenda do Prato Equilibrado" id="game-logo">
         <p class="menu-subtitle">Você caminha pela Floresta das Frutas…</p>
@@ -95,8 +130,10 @@
         <button id="cards-button" class="menu-button hidden">Cartas</button>
         <button id="reset-button" class="menu-button hidden">Encerrar Jornada</button>
     </div>
-    <div id="game-over-screen" class="screen hidden"> <h1>Fim de Jogo</h1> <button id="return-to-menu-button" class="menu-button">Voltar ao Menu</button> </div>
-    
+    <div id="game-over-screen" class="screen hidden">
+        <h1>Fim de Jogo</h1>
+        <button id="return-to-menu-button" class="menu-button">Voltar ao Menu</button>
+    </div>
     <div id="encyclopedia-screen" class="screen hidden">
         <div id="encyclopedia-header">
             <h1>Enciclopédia de Alimentos</h1>
@@ -115,19 +152,38 @@
         </div>
         <div id="encyclopedia-list"></div>
     </div>
-
-    <div id="cards-screen" class="screen hidden"> </div>
+    <div id="cards-screen" class="screen hidden">
+        <div id="cards-header">
+            <h1>Minhas Cartas</h1>
+            <button id="close-cards-button" class="menu-button" style="width: auto; font-size: 20px; padding: 10px 20px;">Voltar</button>
+        </div>
+        <div id="cards-list"></div>
+    </div>
 
     <script>
-    const refs={ mainContainer:document.getElementById('main-container'), gameArea:document.getElementById('game-area'), player:document.getElementById('player'), roomMessage:document.getElementById('room-message'), choiceOverlay: document.getElementById('choice-overlay'), ui:{ room:document.getElementById('current-room'), health:document.getElementById('player-health'), shield:document.getElementById('player-shield'), attack:document.getElementById('player-attack'), coins:document.getElementById('player-coins'), inventory:document.getElementById('inventory-list') }, menu:{ main:document.getElementById('main-menu'), playBtn:document.getElementById('play-button'), resetBtn: document.getElementById('reset-button'), encyclopediaBtn: document.getElementById('encyclopedia-button'), cardsBtn: document.getElementById('cards-button') }, gameOver: { screen: document.getElementById('game-over-screen'), returnBtn: document.getElementById('return-to-menu-button') }, encyclopedia: { screen: document.getElementById('encyclopedia-screen'), closeBtn: document.getElementById('close-encyclopedia-button'), filters: document.getElementById('encyclopedia-filters'), list: document.getElementById('encyclopedia-list') }, cards: { screen: document.getElementById('cards-screen'), closeBtn: document.getElementById('close-cards-button'), list: document.getElementById('cards-list') } };
+    // Chave de save fixa para compatibilidade com as páginas de evento.
+    const SAVE_KEY = 'meuJoguinhoState_v27';
+
+    const refs = {
+        mainContainer: document.getElementById('main-container'),
+        gameArea: document.getElementById('game-area'),
+        player: document.getElementById('player'),
+        roomMessage: document.getElementById('room-message'),
+        choiceOverlay: document.getElementById('choice-overlay'),
+        ui: { room: document.getElementById('current-room'), health: document.getElementById('player-health'), shield: document.getElementById('player-shield'), attack: document.getElementById('player-attack'), coins: document.getElementById('player-coins'), inventory: document.getElementById('inventory-list') },
+        menu: { main: document.getElementById('main-menu'), playBtn: document.getElementById('play-button'), resetBtn: document.getElementById('reset-button'), encyclopediaBtn: document.getElementById('encyclopedia-button'), cardsBtn: document.getElementById('cards-button') },
+        gameOver: { screen: document.getElementById('game-over-screen'), returnBtn: document.getElementById('return-to-menu-button') },
+        encyclopedia: { screen: document.getElementById('encyclopedia-screen'), closeBtn: document.getElementById('close-encyclopedia-button'), filters: document.getElementById('encyclopedia-filters'), list: document.getElementById('encyclopedia-list') },
+        cards: { screen: document.getElementById('cards-screen'), closeBtn: document.getElementById('close-cards-button'), list: document.getElementById('cards-list') }
+    };
+
     let playerState, gameState = 'MAIN_MENU', currentRoom = 0, lastTime = 0, roomClearTimer = 0;
-    const keys={ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false};
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, a: false, s: false, d: false };
     let activeEnemies = [], activeProjectiles = [], activeCoins = [], activeFood = [], activeCompanions = [];
     let activePastaProjectiles = [], activeOrangeProjectiles = [], activeFriendProjectiles = [], activeBeeProjectiles = [], activeLasers = [];
     let activeEnemyProjectiles = [], activePeraLinks = [];
     let strawberryFireTimer = 0;
 
-    // --- ESTADO DO JOGADOR E SAVE/LOAD ---
     function getNewPlayerState() {
         const state = {
             x: 385, y: 520, speed: 4, baseHealth: 10, bonusHealth: 0, baseAttack: 1, bonusAttack: 0,
@@ -144,7 +200,6 @@
             thornsDamage: 0, hasFish: false, hasRice: false, hasBean: false, hasPepper: false, hasBrigadeiro: false, hasSwissCheese: false,
             hasOmeleteUpgrade: false, honeyStacks: 0, beeSummonTimer: 30, hasCarrotBasket: false, tookDamageThisRoom: false,
             cartasCompradas: [], 
-            // Estados para as novas salas
             permanentUnlocks: { hasOldManMap: false, cardViewerEnabled: false },
             eventStates: { turtleMerchant: 'not_met' },
             stackableItems: { uva: 1, batata: 1 },
@@ -154,19 +209,33 @@
         Object.defineProperty(state, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true });
         return state;
     }
-    function savePlayerState(state) { const savableState = { ...state, inventory: Array.from(state.inventory.entries()) }; localStorage.setItem('meuJoguinhoState_v27', JSON.stringify(savableState)); }
+
+    // --- FUNÇÃO CORRIGIDA ---
+    function savePlayerState(state) {
+        // A propriedade 'savedWithVersion' foi removida para não causar erro.
+        const savableState = { 
+            ...state, 
+            inventory: Array.from(state.inventory.entries())
+        };
+        localStorage.setItem(SAVE_KEY, JSON.stringify(savableState));
+    }
+
+    // --- FUNÇÃO CORRIGIDA ---
     function loadPlayerState() {
-        const savedStateJSON = localStorage.getItem('meuJoguinhoState_v27');
+        const savedStateJSON = localStorage.getItem(SAVE_KEY);
         if (!savedStateJSON) return null;
+
         const loadedObject = JSON.parse(savedStateJSON);
-        // Garante que o estado carregado tenha todas as novas propriedades do estado padrão
-        const restoredState = { ...getNewPlayerState(), ...loadedObject, inventory: new Map(loadedObject.inventory) };
+
+        // O bloco de verificação de versão foi removido para não causar erro.
+
+        const restoredState = { ...getNewPlayerState(), ...loadedObject, inventory: new Map(loadedObject.inventory || []) };
         Object.defineProperty(restoredState, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true });
         Object.defineProperty(restoredState, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true });
         return restoredState;
     }
 
-    // --- LISTAS PRINCIPAIS (SHOP E CARDS) ---
+    // --- BANCO DE DADOS DO JOGO (Itens, Cartas, etc.) ---
     const masterShopList = [
         // Consumíveis de Fase
         { id: 'banana', name: 'Banana', symbol: '🍌', desc: 'Cura 1 de vida (ou 3 com a Batida de Banana). Encontrado nas fases.', cost: 'Fase', rarity: 'comum', pyramidGroup: 'Frutas' },
@@ -178,7 +247,7 @@
         { id: 'biscoito', name: 'Biscoito', symbol: '🍪', desc: '+5 Vida, +5 Moedas. Encontrado em evento.', cost: 'Evento', rarity: 'incomum', pyramidGroup: 'Doces' },
 
         // Itens Comuns Empilháveis
-        { id: 'milhoUpgrade', name: 'Milho na Loja', symbol: '🌽', desc: 'Milhos passam a poder aparecer nas fases.', cost: 25, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.hasCornUpgrade = true; }, pyramidGroup: 'Cereais' },
+        { id: 'milhoUpgrade', name: 'Plantar Milho', symbol: '🌽', desc: 'Milhos passam a poder aparecer nas fases.', cost: 25, stackable: false, rarity: 'incomum', onPurchase: () => { playerState.hasCornUpgrade = true; }, pyramidGroup: 'Cereais' },
         { id: 'alface', name: 'Alface', symbol: '🥬', desc: 'Concede 30 de escudo.', cost: 30, stackable: true, rarity: 'comum', onPurchase: () => { playerState.shield += 30 }, pyramidGroup: 'Hortaliças' },
         { id: 'laranja', name: 'Laranja', symbol: '🍊', desc: 'Dispara 8 projéteis a cada 5s (+2 de dano por compra).', cost: 35, stackable: true, rarity: 'incomum', onPurchase: () => { playerState.orangeUpgrade += 1 }, pyramidGroup: 'Frutas' },
         { id: 'macarrao', name: 'Macarrão', symbol: '🍝', desc: 'Ganha um tiro automático que causa lentidão (+10% por compra).', cost: 35, stackable: true, rarity: 'comum', onPurchase: () => { playerState.hasPastaShot = true; playerState.pastaSlowFactor += 0.1 }, pyramidGroup: 'Cereais' },
@@ -246,164 +315,311 @@
         { id: 'guisado', name: 'Guisado do Coringa', symbol: '🍲', desc: '(ESPECIAL) Concede +50 de dano de espinhos.', cost: 'Evento', rarity: 'especial', onPurchase: () => { playerState.thornsDamage += 50; }, pyramidGroup: 'Carnes' },
         { id: 'lagosta', name: 'Lagosta Real', symbol: '🦞', desc: '(ESPECIAL) Concede +100 de vida.', cost: 'Evento', rarity: 'especial', stackable: true, onPurchase: () => { playerState.baseHealth += 100; }, pyramidGroup: 'Carnes' },
     ];
-    const masterCardList = [ /* ... Sua lista de cartas não foi modificada ... */ ];
-
-    // --- LÓGICA DO JOGO ---
     
-    function updateStatusBoard(){ if(!playerState) return; updateDynamicStats(); refs.ui.room.textContent = currentRoom; refs.ui.health.textContent = Math.max(0, playerState.health.toFixed(0)); refs.ui.shield.textContent = playerState.shield.toFixed(0); refs.ui.attack.textContent = playerState.attack.toFixed(0); refs.ui.coins.textContent = playerState.coins; }
+    const masterCardList = [
+        { id: 'card_raposa', name: 'Gabriel, o Mercador Raposa', details: { emoji: '🦊', title: 'O Mercador Aventureiro', origin: 'Reino das Frutas', location: 'Bosques Verdejantes', favoriteFood: 'Churrasco', relationships: 'Amigo do Gato Cavaleiro.', philosophy: '“Exercícios físicos são tão importantes quanto uma boa alimentação!”' }},
+        { id: 'card_urso', name: 'Arthur, o Mercador Urso', details: { emoji: '🐻', title: 'O Comerciante Robusto', origin: 'Reino das Carnes', location: 'Bosques Roxos', favoriteFood: 'Mel e Nozes', relationships: 'Admirador da sabedoria do Mercador Tartaruga.', philosophy: '“Uma alimentação nutritiva é a base para o verdadeiro vigor.”' }},
+        { id: 'card_coelha', name: 'Vitória, a Mercadora Coelha', details: { emoji: '🐰', title: 'A Empreendedora Novata', origin: 'Reino das Hortaliças', location: 'Clareiras Alaranjadas', favoriteFood: 'Cenoura e Couve', relationships: 'Próxima da Mercadora Vaca.', philosophy: '“Sonho com comida de verdade para todos!”' }},
+        { id: 'card_vaca', name: 'Camile, a Mercadora Vaca', details: { emoji: '🐮', title: 'A Rainha dos Laticínios', origin: 'Reino dos Laticínios', location: 'Bosques Floridos', favoriteFood: 'Brócolis', relationships: 'Amiga do Mercador Urso.', philosophy: '“Estilo é tudo, querido. E essa Rainha Uva... que deselegância!”' }},
+        { id: 'card_gato_coringa', name: 'Gato Coringa', details: { emoji: '🃏', title: 'O Agente do Caos', origin: 'Dimensão do Acaso', location: 'Qualquer lugar', favoriteFood: 'Guisado do Coringa', relationships: 'Ninguém.', philosophy: '“Equilíbrio? A verdadeira graça está no delicioso caos da incerteza!”' }},
+        { id: 'card_gato_robo', name: 'Gato Robô', details: { emoji: '🤖', title: 'O Arquivista Cibernético', origin: 'Planeta Technutron', location: 'Santuário Tecnológico', favoriteFood: 'Dados puros (aceita Biscoitos).', relationships: 'Conectado à rede neural da floresta.', philosophy: '“A informação é o nutriente supremo.”' }},
+        { id: 'card_gato_cavaleiro', name: 'Gato Cavaleiro', details: { emoji: '⚔️', title: 'O Paladino das Proteínas', origin: 'Val-Miau-a', location: 'Arenas de Treinamento', favoriteFood: 'Peixe do Cavaleiro', relationships: 'Respeito mútuo com Gabriel, a Raposa.', philosophy: '“A força para brandir a espada vem da força no prato.”' }},
+        { id: 'card_fazendeiro', name: 'Cachorro Fazendeiro', details: { emoji: '👨‍🌾', title: 'O Guardião da Colheita', origin: 'As Colinas Férteis', location: 'Campos de Morangos', favoriteFood: 'Morango Brilhante', relationships: 'Fornecedor para todos os mercadores.', philosophy: '“A Rainha esqueceu que variedade é o tempero da vida.”' }},
+        { id: 'card_gato_mago', name: 'Gato Mago', details: { emoji: '🧙', title: 'O Alquimista Culinário', origin: 'Plano Etéreo dos Sabores', location: 'Bosques Mágicos', favoriteFood: 'Pratos que nunca se repetem.', relationships: 'Mentor para os perdidos.', philosophy: '“A magia de verdade está em um prato equilibrado!”' }},
+        { id: 'card_gato_sorte', name: 'Gato da Sorte', details: { emoji: '🍀', title: 'O Viajante Afortunado', origin: 'Um mundo espelhado', location: 'Bosques Dourados', favoriteFood: 'Moedas de Chocolate', relationships: 'Aparece para quem mais precisa.', philosophy: '“O equilíbrio não é só sobre comida, é sobre sorte.”' }},
+        { id: 'card_group_cereais', name: 'Grupo: Cereais e Tubérculos', details: { emoji: '🍞', title: 'A Base Energética', philosophy: "A base da nossa pirâmide! Itens como Pão e Arroz são ricos em carboidratos, a principal fonte de energia para o corpo se mover, pensar e lutar." }},
+        { id: 'card_group_hortalicas', name: 'Grupo: Hortaliças', details: { emoji: '🥕', title: 'Os Reguladores Naturais', philosophy: "Essenciais para a defesa! Ricos em vitaminas, minerais e fibras, regulam as funções do organismo e protegem contra doenças, como um escudo natural." }},
+        { id: 'card_group_frutas', name: 'Grupo: Frutas', details: { emoji: '🍎', title: 'As Fontes de Vitalidade', philosophy: "Doces e poderosas! Frutas como Banana e Laranja são fontes rápidas de energia, vitaminas e fibras." }},
+        { id: 'card_group_laticinios', name: 'Grupo: Leites e Laticínios', details: { emoji: '🥛', title: 'Os Construtores de Ossos', philosophy: "Fundamentais para estruturas fortes! São as maiores fontes de Cálcio, essencial para a saúde dos ossos e dentes." }},
+        { id: 'card_group_carnes', name: 'Grupo: Carnes e Ovos', details: { emoji: '🥩', title: 'Os Construtores de Músculos', philosophy: "Para força e reparo! São as principais fontes de proteínas, os 'tijolos' do nosso corpo. Constroem e reparam os músculos." }},
+        { id: 'card_group_leguminosas', name: 'Grupo: Leguminosas', details: { emoji: '🫘', title: 'A Força que Vem da Terra', philosophy: "Proteína vegetal poderosa! Feijão e Nozes garantem energia e ajudam no bom funcionamento do sistema digestivo." }},
+        { id: 'card_group_gorduras', name: 'Grupo: Óleos e Gorduras', details: { emoji: '🧈', title: 'A Reserva de Energia', philosophy: "Energia concentrada! Importantes para proteger órgãos e absorver vitaminas, mas o excesso é prejudicial." }},
+        { id: 'card_group_doces', name: 'Grupo: Açúcares e Doces', details: { emoji: '🍬', title: 'O Topo da Pirâmide', philosophy: "Prazer com moderação! Fornecem energia rápida, mas não possuem muitos nutrientes. Devem ser consumidos em pequenas quantidades." }},
+    ];
+
+    // --- FUNÇÕES DE LÓGICA DO JOGO ---
+
+    function updateStatusBoard(){ if(!playerState) return; updateDynamicStats(); refs.ui.room.textContent = currentRoom + 1; refs.ui.health.textContent = Math.max(0, playerState.health.toFixed(0)); refs.ui.shield.textContent = playerState.shield.toFixed(0); refs.ui.attack.textContent = playerState.attack.toFixed(0); refs.ui.coins.textContent = playerState.coins; }
     function updateInventoryDisplay(){ if(!playerState) return; refs.ui.inventory.innerHTML=''; playerState.inventory.forEach((count, name)=>{ const itemData = masterShopList.find(i => i.name === name); const itemEl=document.createElement('div'); itemEl.className='inventory-item'; if(itemData && itemData.rarity === 'especial') itemEl.classList.add('golden-item'); itemEl.textContent=`${name} ${count > 1 ? `x${count}`:''}`; refs.ui.inventory.appendChild(itemEl); }); }
-    function showRoomMessage(text, duration) { refs.roomMessage.textContent = text; refs.roomMessage.classList.remove('hidden'); if (duration) setTimeout(() => refs.roomMessage.classList.add('hidden'), duration * 1000); }
+    function showRoomMessage(text, durationInSeconds) { refs.roomMessage.textContent = text; refs.roomMessage.classList.remove('hidden'); setTimeout(() => refs.roomMessage.classList.add('hidden'), durationInSeconds * 1000); }
     function createEntity(className, id=null){ const div=document.createElement('div'); div.className=`entity ${className}`; if(id) div.id=id; refs.gameArea.appendChild(div); return div; }
     function checkCollision(d1, d2){ if(!d1 || !d2) return false; const r1=d1.getBoundingClientRect(), r2=d2.getBoundingClientRect(); return !(r1.right<r2.left || r1.left>r2.right || r1.bottom<r2.top || r1.top>r2.bottom); }
     function findNearestEnemy(source, excludeSelf = false){ let nearest=null, minDist=Infinity; activeEnemies.forEach(e=>{ if(excludeSelf && e === source) return; const dist = Math.hypot(e.x - source.x, e.y - source.y); if(dist < minDist){ minDist=dist; nearest=e; } }); return nearest; }
-    
-    function createEnemy(type) {
-        const roomMultiplier = 1 + (currentRoom * 0.2);
-        let e = { id: Date.now() + Math.random(), type: type, x: Math.random() * 740, y: Math.random() * 540, slowFactor: 1, isPoisoned: false, poisonTimer: 0, isInvulnerable: false, linkedTo: null, linkedBy: null, fireTimer: 2 + Math.random() * 2 };
-        switch (type) {
-            case 'uva': e.div = createEntity('enemy'); e.speed = 1 + (currentRoom * 0.1); e.health = 3 * roomMultiplier; e.damage = 1 * roomMultiplier; e.dx = (Math.random() - .5) * 2; e.dy = (Math.random() - .5) * 2; break;
-            case 'banana': e.div = createEntity('enemy-banana'); e.speed = 0.8 + (currentRoom * 0.05); e.health = 4 * roomMultiplier; e.damage = 2 * roomMultiplier; if (Math.random() > 0.5) { e.x = Math.random() > 0.5 ? -30 : 830; e.y = Math.random() * 600; } else { e.x = Math.random() * 800; e.y = Math.random() > 0.5 ? -30 : 630; } break;
-            case 'pera': e.div = createEntity('enemy-pera'); e.speed = 0.5; e.health = 8 * roomMultiplier; e.damage = 0; e.dx = (Math.random() - .5); e.dy = (Math.random() - .5); break;
-            case 'maca': e.div = createEntity('enemy-maca'); e.speed = 1.5; e.health = 5 * roomMultiplier; e.damage = 3 * roomMultiplier; e.x = Math.random() * 700 + 50; e.y = 50 + Math.random() * 50; e.dx = Math.random() > 0.5 ? 1 : -1; break;
-            case 'maca_verde': e.div = createEntity('enemy-maca-verde'); e.speed = 1; e.health = 2 * roomMultiplier; e.damage = 3 * roomMultiplier; e.y = Math.random() * 500 + 50; e.x = Math.random() > 0.5 ? 50 : 750; e.dy = Math.random() > 0.5 ? 1 : -1; break;
+
+    function populateEncyclopedia(filter = 'all') {
+        const listContainer = refs.encyclopedia.list;
+        listContainer.innerHTML = '';
+        const groupInfo = {
+            'Cereais': { title: 'Grupo: Cereais e Tubérculos', desc: "A base da nossa pirâmide! Ricos em carboidratos, a principal fonte de energia para o corpo se mover, pensar e lutar." },
+            'Hortaliças': { title: 'Grupo: Hortaliças', desc: "Ricos em vitaminas, minerais e fibras, regulam as funções do organismo e protegem contra doenças, como um escudo natural." },
+            'Frutas': { title: 'Grupo: Frutas', desc: "Doces e poderosas! São fontes rápidas de energia, vitaminas e fibras." },
+            'Laticínios': { title: 'Grupo: Leites e Laticínios', desc: "Fundamentais para estruturas fortes! São as maiores fontes de Cálcio, essencial para a saúde dos ossos e dentes." },
+            'Carnes': { title: 'Grupo: Carnes e Ovos', desc: "Para força e reparo! São as principais fontes de proteínas, os 'tijolos' do nosso corpo, que constroem e reparam os músculos." },
+            'Leguminosas': { title: 'Grupo: Leguminosas', desc: "Proteína vegetal poderosa! Garantem energia e ajudam no bom funcionamento do sistema digestivo." },
+            'Gorduras': { title: 'Grupo: Óleos e Gorduras', desc: "Energia concentrada! Importantes para proteger órgãos e absorver vitaminas, mas o excesso é prejudicial." },
+            'Doces': { title: 'Grupo: Açúcares e Doces', desc: "Prazer com moderação! Fornecem energia rápida, mas não possuem muitos nutrientes. Consuma em pequenas quantidades!" }
+        };
+        let itemsToShow = masterShopList.slice();
+        if (filter !== 'all') {
+            const info = groupInfo[filter];
+            if (info) {
+                const descElement = document.createElement('div');
+                descElement.className = 'encyclopedia-group-desc';
+                descElement.innerHTML = `<h4>${info.title}</h4><p>${info.desc}</p>`;
+                listContainer.appendChild(descElement);
+            }
+            itemsToShow = masterShopList.filter(item => item.pyramidGroup === filter);
         }
-        let dist = 0; do { dist = Math.hypot(e.x - playerState.x, e.y - playerState.y); if (dist < 250) { e.x = Math.random() * 740; e.y = Math.random() * 540; } } while (dist < 250);
-        activeEnemies.push(e); return e;
+        itemsToShow.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+            const itemElement = document.createElement('div');
+            const rarity = item.rarity || 'comum';
+            itemElement.className = `encyclopedia-item rarity-${rarity}`;
+            const costText = typeof item.cost === 'number' ? `${item.cost} moedas` : item.cost;
+            itemElement.innerHTML = `<div class="encyclopedia-item-symbol">${item.symbol}</div><div class="encyclopedia-item-details"><span class="encyclopedia-item-title ${'rarity-' + rarity}">${item.name}</span><span>${item.desc}</span><span style="font-size: 12px; opacity: 0.7; margin-top: 4px;">Custo: ${costText}</span></div>`;
+            listContainer.appendChild(itemElement);
+        });
     }
 
+    function populateCardsScreen() {
+        const listContainer = refs.cards.list;
+        listContainer.innerHTML = '';
+        if (!playerState.cartasCompradas || playerState.cartasCompradas.length === 0) {
+            listContainer.innerHTML = '<div style="text-align: center; padding: 20px; font-size: 20px;">Você ainda não possui nenhuma carta. Visite o Gato Robô!</div>';
+            return;
+        }
+        const ownedCards = masterCardList.filter(card => playerState.cartasCompradas.includes(card.id));
+        ownedCards.sort((a,b) => a.name.localeCompare(b.name)).forEach(card => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card-item';
+            if (card.details) {
+                cardElement.innerHTML = `<div class="npc-card-header"><div class="npc-card-emoji">${card.details.emoji}</div><h3 class="npc-card-title">${card.name}</h3><p class="npc-card-subtitle">${card.details.title}</p></div><div class="npc-card-body"><div class="npc-card-detail"><strong>Origem:</strong> ${card.details.origin || 'Desconhecida'}</div><div class="npc-card-detail"><strong>Encontrado em:</strong> ${card.details.location || 'Desconhecido'}</div><div class="npc-card-detail"><strong>Comida Favorita:</strong> ${card.details.favoriteFood || 'N/A'}</div><div class="npc-card-detail"><strong>Relações:</strong> ${card.details.relationships || 'N/A'}</div><div class="npc-card-detail"><strong>Filosofia:</strong> <em>${card.details.philosophy || ''}</em></div></div>`;
+            } else {
+                cardElement.classList.add('card-item-simple');
+                cardElement.innerHTML = `<div class="card-item-details"><span class="card-item-title">${card.name}</span><span>${card.desc}</span></div>`;
+            }
+            listContainer.appendChild(cardElement);
+        });
+    }
+
+    function createEnemy(type, options = {}) {
+        const roomMultiplier = Math.pow(1.8, Math.floor(currentRoom / 5));
+        let e = { id: Date.now() + Math.random(), type: type, x: Math.random() * 740, y: Math.random() * 540, slowFactor: 1, isPoisoned: false, poisonTimer: 0, isInvulnerable: false, linkedTo: null, linkedBy: null, fireTimer: 2 + Math.random() * 2 };
+        switch (type) {
+            case 'uva': e.div = createEntity('enemy'); e.speed = 1 + (currentRoom * 0.1); e.health = (3 + currentRoom) * roomMultiplier; e.damage = 1 * roomMultiplier; e.dx = (Math.random() - .5) * 2; e.dy = (Math.random() - .5) * 2; break;
+            case 'banana': e.div = createEntity('enemy-banana'); e.speed = 0.8 + (currentRoom * 0.05); e.health = 4 * roomMultiplier; e.damage = 2 * roomMultiplier; if (Math.random() > 0.5) { e.x = Math.random() > 0.5 ? -30 : 830; e.y = Math.random() * 600; } else { e.x = Math.random() * 800; e.y = Math.random() > 0.5 ? -30 : 630; } break;
+            case 'pera': e.div = createEntity('enemy-pera'); e.speed = 0.5; e.health = 50 * roomMultiplier; e.damage = 0; e.dx = (Math.random() - .5); e.dy = (Math.random() - .5); break;
+            case 'maca': e.div = createEntity('enemy-maca'); e.speed = 1.5; e.health = 5 * roomMultiplier; e.damage = 3 * roomMultiplier; e.x = Math.random() * 700 + 50; e.y = 50 + Math.random() * 50; e.dx = Math.random() > 0.5 ? 1 : -1; break;
+            case 'maca_verde': e.div = createEntity('enemy-maca-verde'); e.speed = 1; e.health = 8 * roomMultiplier; e.damage = 3 * roomMultiplier; e.y = Math.random() * 500 + 50; e.x = Math.random() > 0.5 ? 50 : 750; e.dy = Math.random() > 0.5 ? 1 : -1; break;
+        }
+        let dist = 0;
+        do { dist = Math.hypot(e.x - playerState.x, e.y - playerState.y); if (dist < 250) { e.x = Math.random() * 740; e.y = Math.random() * 540; } } while (dist < 250);
+        activeEnemies.push(e);
+        return e;
+    }
+
+    function createPeraLink(pera, target) {
+        if (!pera || !target) return;
+        pera.linkedTo = target.id;
+        target.linkedBy = pera.id;
+        target.isInvulnerable = true;
+        const link = { id: Date.now() + Math.random(), div: createEntity('pera-link'), peraId: pera.id, targetId: target.id };
+        activePeraLinks.push(link);
+    }
+    
     function createFood(){
-        let foodPool = [...foodTypes];
-        // LÓGICA DO MILHO CORRIGIDA
-        if (playerState.hasCornUpgrade) {
-            foodPool.push(...newRoomFood);
+        const foodPool = [
+            {name:'banana', effect:()=>{playerState.baseHealth += playerState.bananaUpgrade ? 3 : 1}, chance: playerState.spawnRateModifiers.banana },
+            {name:'leite', effect:()=>{playerState.baseHealth += playerState.milkUpgrade ? 2 : 1}, chance: playerState.spawnRateModifiers.leite },
+            {name:'cenoura', effect:()=>{playerState.baseAttack += playerState.hasCarrotBasket ? 2 : 1}, chance: playerState.spawnRateModifiers.legumes},
+            {name:'couve', effect:()=>{playerState.shield+=5}, chance: playerState.spawnRateModifiers.legumes}
+        ];
+        if(playerState.canSpawnEggs) foodPool.push({name:'ovo', effect:()=>{playerState.baseHealth += playerState.hasOmeleteUpgrade ? 2 : 1; playerState.baseAttack+= playerState.hasOmeleteUpgrade ? 2 : 1;}, chance: 1.0 });
+        if(playerState.hasCornUpgrade && Math.random() < 0.1) foodPool.push({name:'milho', effect:()=>{playerState.baseAttack+=2; playerState.baseHealth+=2; playerState.coins+=2;}, chance: 1.0 });
+        
+        const totalChance = foodPool.reduce((sum, item) => sum + item.chance, 0);
+        let random = Math.random() * totalChance;
+        let chosenFood;
+        for(const food of foodPool) {
+            if(random < food.chance) { chosenFood = food; break; }
+            random -= food.chance;
         }
-        if (playerState.canSpawnEggs) {
-            foodPool.push(...specialFood);
+        if(!chosenFood) chosenFood = foodPool[0];
+
+        const e={div:createEntity(`item ${chosenFood.name}`), effect:()=>{chosenFood.effect(); updateStatusBoard();}}; 
+        e.div.style.left=Math.random()*736+'px'; e.div.style.top=Math.random()*536+'px'; activeFood.push(e); 
+    }
+
+    function createCompanion(type){
+        if(activeCompanions.some(c => c.type === type && !c.isAbobora)) return;
+        const c = { div:createEntity(`companion ${type}-friend`), type:type, x:playerState.x, y:playerState.y-50, attackSpeedFactor: playerState.hasWhiteGrape ? 3 : 1, damage: 0 };
+        switch(type){
+            case 'chocolate': c.damage = 5 + playerState.companionBuffs.bonusDamage; c.fireTimer=2; break;
+            case 'dragon': c.damage=10 + playerState.companionBuffs.bonusDamage; c.fireTimer=1; break;
+            case 'ice_cream': c.damage=2 + playerState.companionBuffs.bonusDamage; c.fireTimer=0; break;
+            case 'yogurt': c.healRate=2; break;
+            case 'cheese': c.immortal=true; break;
+            case 'abobora': c.damage=10; c.dx = 2.5; c.dy=0; c.immortal=true; c.isAbobora = true; break;
         }
-        if(foodPool.length === 0) return;
-        const chosenFood = foodPool[Math.floor(Math.random() * foodPool.length)];
-        const foodEntity = {
-            div: createEntity(`item ${chosenFood.name}`),
-            effect: () => { chosenFood.effect(); updateStatusBoard(); }
-        };
-        foodEntity.div.style.left = Math.random() * 768 + 'px';
-        foodEntity.div.style.top = Math.random() * 568 + 'px';
-        activeFood.push(foodEntity);
+        if(!c.immortal) c.health = 50 + playerState.companionBuffs.bonusHealth;
+        activeCompanions.push(c);
+    }
+    
+    function updateCompanions(deltaTime){
+        activeCompanions.forEach((c,index) => {
+            switch(c.type){
+                case 'abobora':
+                    c.x += c.dx * 3;
+                    c.div.style.left = c.x + 'px';
+                    c.div.style.top=c.y+'px';
+                    if(c.x <= -64 || c.x >= 800) c.dx *= -1;
+                    activeEnemies.forEach(e => { if(checkCollision(c.div, e.div)) e.health -= c.damage * deltaTime * 5; });
+                    break;
+                case 'yogurt':
+                    if(c.healRate) playerState.baseHealth += c.healRate * deltaTime;
+                    break;
+                case 'cheese': break;
+                case 'ice_cream': break;
+                default: // Chocolate, Dragon
+                    c.fireTimer -= deltaTime;
+                    if(c.fireTimer <= 0 && activeEnemies.length > 0){
+                        const target = findNearestEnemy(c);
+                        if(target){
+                            const dir={x:target.x-c.x, y:target.y-c.y};
+                            const mag=Math.hypot(dir.x,dir.y)||1;
+                            createFriendProjectile(c, {x:dir.x/mag, y:dir.y/mag}, 'friend-projectile', c.damage);
+                            c.fireTimer = (c.type==='dragon'?1:2) / c.attackSpeedFactor;
+                        }
+                    }
+                    break;
+            }
+            if(!c.isAbobora){
+                const formationOffset = (index - (activeCompanions.length-1)/2) * 70;
+                c.x += (playerState.x + formationOffset - c.x) * 0.05;
+                c.y += (playerState.y - 70 - c.y) * 0.05;
+                c.div.style.left = c.x+'px';
+                c.div.style.top=c.y+'px';
+            }
+        });
+    }
+
+    function updateLasers(deltaTime) {
+        activeLasers = activeLasers.filter(l => {
+            const ownerExists = activeCompanions.some(c => c.div.id === l.ownerId);
+            if (!ownerExists) { l.div.remove(); return false; }
+            return true;
+        });
+
+        const iceCreamCompanions = activeCompanions.filter(c => c.type === 'ice_cream');
+        iceCreamCompanions.forEach(c => {
+            let laser = activeLasers.find(l => l.ownerId === c.div.id);
+            const target = findNearestEnemy(c);
+
+            if (target) {
+                if (!laser) {
+                    laser = { div: createEntity('laser-beam'), ownerId: c.div.id, damage: c.damage, attackSpeedFactor: c.attackSpeedFactor };
+                    c.div.id = c.div.id || `comp_${Date.now()}${Math.random()}`;
+                    laser.ownerId = c.div.id;
+                    activeLasers.push(laser);
+                }
+                const p1 = { x: c.x + 32, y: c.y + 32 };
+                const p2 = { x: target.x + 30, y: target.y + 30 };
+                const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
+                laser.div.style.width = dist + 'px';
+                laser.div.style.left = p1.x + 'px';
+                laser.div.style.top = p1.y - 2.5 + 'px';
+                laser.div.style.transform = `rotate(${angle}deg)`;
+                laser.div.classList.remove('hidden');
+
+                if (!target.isInvulnerable) {
+                    target.health -= laser.damage * deltaTime * laser.attackSpeedFactor;
+                }
+            } else if (laser) {
+                laser.div.classList.add('hidden');
+            }
+        });
     }
 
     function handleRoomClearBonus() {
         if (playerState.tookDamageThisRoom) return;
-        showRoomMessage("Bônus: Sala Perfeita!", 2);
-        
-        let bonusText = "";
-        if (playerState.hasFish) { playerState.baseAttack += 30; bonusText += '+30 Ataque (Peixe)\n'; }
-        if (playerState.hasRice) { playerState.baseHealth += 20; bonusText += '+20 Vida (Arroz)\n'; }
-        if (playerState.hasBean) { playerState.baseAttack += 5; bonusText += '+5 Ataque (Feijão)\n'; }
-        if (playerState.hasPepper) { playerState.coins += 50; bonusText += '+50 Moedas (Pimenta)\n'; }
-        if (playerState.hasSwissCheese && Math.random() < 0.5) { playerState.shield += 20; bonusText += '+20 Escudo (Queijo Suiço)\n'; }
+        let bonusText = "Bônus: Sala Perfeita!";
+        if (playerState.hasFish) { playerState.baseAttack += 30; bonusText += '\n+30 Ataque (Peixe)'; }
+        if (playerState.hasRice) { playerState.baseHealth += 20; bonusText += '\n+20 Vida (Arroz)'; }
+        if (playerState.hasBean) { playerState.baseAttack += 5; bonusText += '\n+5 Ataque (Feijão)'; }
+        if (playerState.hasPepper) { playerState.coins += 50; bonusText += '\n+50 Moedas (Pimenta)'; }
+        if (playerState.hasSwissCheese && Math.random() < 0.5) { playerState.shield += 20; bonusText += '\n+20 Escudo (Queijo Suiço)'; }
         if (playerState.hasBrigadeiro) {
             const rand = Math.random();
-            if (rand < 0.33) { playerState.shield += 99; bonusText += '+99 Escudo (Brigadeiro)\n'; }
-            else if (rand < 0.66) { playerState.baseHealth += 66; bonusText += '+66 Vida (Brigadeiro)\n'; }
-            else { playerState.baseAttack += 33; bonusText += '+33 Ataque (Brigadeiro)\n'; }
+            if (rand < 0.33) { playerState.shield += 99; bonusText += '\n+99 Escudo (Brigadeiro)'; }
+            else if (rand < 0.66) { playerState.baseHealth += 66; bonusText += '\n+66 Vida (Brigadeiro)'; }
+            else { playerState.baseAttack += 33; bonusText += '\n+33 Ataque (Brigadeiro)'; }
         }
-        // LÓGICA DAS UVAS VERDES IMPLEMENTADA
-        if (playerState.greenGrapesStacks > 0 && activeCoins.length > 0) {
-            const percentToCollect = playerState.greenGrapesStacks * 0.1;
-            const coinsToCollect = Math.floor(activeCoins.length * percentToCollect);
-            let coinsGained = 0;
-            for (let i = 0; i < coinsToCollect; i++) {
-                const coin = activeCoins.pop();
-                if (coin && coin.div) {
-                    coin.div.remove();
-                    coinsGained += playerState.hasGrapesUpgrade ? 2 : 1;
-                }
-            }
-            if (coinsGained > 0) {
-                playerState.coins += coinsGained;
-                bonusText += `+${coinsGained} Moedas (Uvas Verdes)\n`;
-            }
-        }
-        if (bonusText) {
-            setTimeout(() => showRoomMessage(bonusText, 3), 1000);
-        }
+        showRoomMessage(bonusText, 2.5);
         updateStatusBoard();
     }
     
-    function createCompanion(type){
-        if(activeCompanions.some(c=>c.type===type)) return;
-        const c={div:createEntity(`companion ${type}-friend`), type:type, x:playerState.x, y:playerState.y-50, attackSpeedFactor:playerState.hasWhiteGrape?3:1, damage: 0};
-        switch(type){
-            case 'chocolate': c.damage = 5 + playerState.companionBuffs.bonusDamage; c.fireTimer=2; break;
-            case 'dragon': c.damage=10+playerState.companionBuffs.bonusDamage; c.fireTimer=1; break;
-            case 'ice_cream': c.damage=2+playerState.companionBuffs.bonusDamage; c.fireTimer=0; c.laser = null; break; // Lógica do Laser
-            case 'yogurt': c.healRate=2; break;
-            case 'cheese': c.immortal=true; break;
-            case 'abobora': c.damage=10; c.dx = 2; c.dy=0; c.immortal=true; break;
-        }
-        if(!c.immortal) c.health=50+playerState.companionBuffs.bonusHealth;
-        activeCompanions.push(c);
-    }
+    // --- GAME LOOP E LÓGICA PRINCIPAL ---
 
-    function updateCompanions(deltaTime){
-        activeCompanions.forEach((c,index) => {
-            switch(c.type){
-                case 'abobora': c.x += c.dx * 3; c.div.style.left = c.x + 'px'; c.div.style.top=c.y+'px'; if(c.x <= 0 || c.x >= 736) c.dx *= -1; activeEnemies.forEach(e => { if(checkCollision(c.div, e.div)) e.health -= c.damage * deltaTime; }); break;
-                case 'yogurt': if(c.healRate) playerState.baseHealth += c.healRate * deltaTime; break;
-                case 'cheese': break;
-                // --- LÓGICA DO LASER DO SORVETE ---
-                case 'ice_cream':
-                    const target = findNearestEnemy(c);
-                    if (target) {
-                        if (!c.laser) {
-                            c.laser = createEntity('laser-beam');
-                            activeLasers.push(c.laser);
-                        }
-                        const p1 = { x: c.x + 32, y: c.y + 32 };
-                        const angle = Math.atan2(target.y - p1.y, target.x - p1.x);
-                        c.laser.style.left = p1.x + 'px';
-                        c.laser.style.top = p1.y + 'px';
-                        c.laser.style.transform = `rotate(${angle * (180 / Math.PI)}deg)`;
-                        c.laser.style.width = '1200px'; // Garante que atravesse a tela
+    function startNewRoom() {
+        showRoomMessage(`Sala ${currentRoom + 1}`, 1.5);
+        playerState.potatoUsedThisRoom = false;
+        playerState.tookDamageThisRoom = false;
+        
+        const entitiesToClear = refs.gameArea.querySelectorAll('.entity:not(#player)');
+        entitiesToClear.forEach(e => e.remove());
 
-                        activeEnemies.forEach(e => {
-                           if(checkCollision(c.laser, e.div)) {
-                               e.health -= c.damage * deltaTime;
-                           }
-                        });
-                    } else if (c.laser) {
-                        c.laser.remove();
-                        activeLasers = activeLasers.filter(l => l !== c.laser);
-                        c.laser = null;
-                    }
-                    break;
-                default: c.fireTimer -= deltaTime; if(c.fireTimer <= 0 && activeEnemies.length > 0){ const target = findNearestEnemy(c); if(target){ const dir={x:target.x-c.x, y:target.y-c.y}; const mag=Math.hypot(dir.x,dir.y)||1; createFriendProjectile(c, {x:dir.x/mag, y:dir.y/mag}, 'friend-projectile', c.damage); c.fireTimer = (c.type==='dragon'?1:2) / c.attackSpeedFactor; } } break;
+        activeFood = []; activeCoins = []; activeEnemies = []; activeProjectiles = [];
+        activePastaProjectiles = []; activeOrangeProjectiles = []; activeFriendProjectiles = [];
+        activeBeeProjectiles = []; activeEnemyProjectiles = []; activePeraLinks = []; activeLasers = [];
+
+        const enemyPool = ['uva'];
+        if (currentRoom >= 2) enemyPool.push('banana');
+        if (currentRoom >= 4) enemyPool.push('maca');
+        if (currentRoom >= 6) enemyPool.push('pera');
+        if (currentRoom >= 8) enemyPool.push('maca_verde');
+
+        const numEnemies = 2 + Math.floor(currentRoom / 2);
+        for (let i = 0; i < numEnemies; i++) {
+            const randomType = enemyPool[Math.floor(Math.random() * enemyPool.length)];
+            if (randomType === 'pera' && i < numEnemies - 1 && !activeEnemies.some(e => e.type === 'pera')) {
+                const pera = createEnemy('pera');
+                const nonPeraPool = enemyPool.filter(t => t !== 'pera');
+                const allyType = nonPeraPool.length > 0 ? nonPeraPool[Math.floor(Math.random() * nonPeraPool.length)] : 'uva';
+                const ally = createEnemy(allyType);
+                createPeraLink(pera, ally);
+                i++;
+            } else {
+                createEnemy(randomType === 'pera' ? 'uva' : randomType);
             }
-            if(c.type !== 'abobora'){ const formationOffset = (index - (activeCompanions.length-1)/2) * 70; c.x += (playerState.x + formationOffset - c.x) * 0.05; c.y += (playerState.y - 70 - c.y) * 0.05; c.div.style.left = c.x+'px'; c.div.style.top=c.y+'px'; }
-        });
+        }
+
+        const numFoods = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < numFoods; i++) createFood();
+        updateStatusBoard();
+        gameState = 'PLAYING';
     }
 
-    // --- FUNÇÕES DE LÓGICA DE SALA E ESCOLHA ---
     function presentPathChoice() {
         gameState = 'AWAITING_CHOICE';
         refs.choiceOverlay.classList.remove('hidden');
         refs.choiceOverlay.innerHTML = '<h2>Você pondera sobre seu próximo passo...</h2>';
-        
         const allPaths = [
             { text: "Seguir por uma clareira com cheiro de cenouras frescas.", page: 'loja_coelha.html'},
             { text: "Avançar por um bosque roxo com um aroma de mel e nozes.", page: 'loja_urso.html' },
             { text: "Explorar um bosque misto com um leve cheiro de leite fresco.", page: 'loja_vaca.html' },
+            { text: "Seguir por uma floresta verdejante com cheiro de alimentos", page: 'loja_raposa.html' },
             { text: "Entrar em uma arena de treinamento com um ar competitivo.", page: 'encontro_gato_cavaleiro.html' },
             { text: "Seguir um zumbido tecnológico vindo de um bosque rosado.", page: 'encontro_gato_robo.html' },
             { text: "Ouvir um lamento vindo de um bosque de bétulas.", page: 'encontro_tartaruga.html' },
             { text: "Ver fumaça e ouvir vozes vindo de um bosque vermelho.", page: 'restaurante_floresta.html' },
-            { text: "Notar um bosque branco e silencioso, com uma figura solitária no centro.", page: 'encontro_gato_pelucia.html' }
+            { text: "Notar um bosque branco e silencioso, com uma figura solitária.", page: 'encontro_gato_pelucia.html' },
+            { text: "Sentir um ar de sorte vindo de um bosque amarelo.", page: 'encontro_gato_sorte.html' },
+            { text: "Perceber uma aura mágica em um bosque azulado.", page: 'encontro_gato_mago.html' },
+            { text: "Ouvir risadas caóticas vindas de uma clareira estranha.", page: 'encontro_gato_coringa.html' },
+            { text: "Ver um pequeno campo com um cheiro doce de morangos.", page: 'encontro_fazendeiro.html' }
         ];
-
-        // LÓGICA DO MAPA DO VELHO IMPLEMENTADA
         const numberOfChoices = playerState.permanentUnlocks.hasOldManMap ? 4 : 2;
         const choices = allPaths.sort(() => 0.5 - Math.random()).slice(0, numberOfChoices);
-
         choices.forEach(path => {
             const button = document.createElement('button');
             button.className = 'choice-button';
@@ -413,126 +629,127 @@
         });
     }
 
-    function startNewRoom(){
-        showRoomMessage(`Sala ${currentRoom}`, 1.5);
-        playerState.potatoUsedThisRoom = false;
-        playerState.tookDamageThisRoom = false;
-        
-        // Limpeza geral da sala
-        const entitiesToClear = refs.gameArea.querySelectorAll('.enemy, .enemy-pera, .enemy-maca, .enemy-maca-verde, .enemy-banana, .pera-link, .coin, .item, .projectile, .pasta-projectile, .orange-projectile, .friend-projectile, .laser-beam, .bee-projectile, .enemy-projectile, .strawberry-shot');
-        entitiesToClear.forEach(e => e.remove());
-
-        activeFood.length=0; activeCoins.length=0; activeEnemies.length=0; activeProjectiles.length=0; activePastaProjectiles.length=0; activeOrangeProjectiles.length=0; activeFriendProjectiles.length=0; activeBeeProjectiles.length=0; activeEnemyProjectiles.length = 0; activePeraLinks.length = 0; activeLasers.length = 0;
-        
-        // Recria companheiros se necessário
-        playerState.companionsToSummon.forEach(type => { if(!activeCompanions.some(c => c.type === type)) createCompanion(type); });
-        
-        // Spawna inimigos e comida
-        const enemyPool = ['uva'];
-        if (currentRoom >= 2) enemyPool.push('banana');
-        if (currentRoom >= 4) enemyPool.push('maca');
-        if (currentRoom >= 6) enemyPool.push('pera');
-        if (currentRoom >= 8) enemyPool.push('maca_verde');
-        const numEnemies = 2 + Math.floor(currentRoom / 2);
-        for(let i=0; i<numEnemies; i++) {
-            const randomType = enemyPool[Math.floor(Math.random() * enemyPool.length)];
-            if (randomType === 'pera' && i < numEnemies - 1 && !activeEnemies.some(e => e.type === 'pera')) {
-                const pera = createEnemy('pera');
-                const nonPeraPool = enemyPool.filter(t => t !== 'pera' && t);
-                const allyType = nonPeraPool.length > 0 ? nonPeraPool[Math.floor(Math.random() * nonPeraPool.length)] : 'uva';
-                const ally = createEnemy(allyType);
-                createPeraLink(pera, ally);
-                i++;
-            } else { createEnemy(randomType === 'pera' ? 'uva' : randomType); }
-        }
-        const numFoods = 1 + Math.floor(Math.random()*2);
-        for(let i=0; i<numFoods; i++) createFood();
-        updateStatusBoard();
-        gameState='PLAYING';
-    }
-
-    // --- GAME LOOP E DEMAIS FUNÇÕES ---
-    // A maioria das funções restantes (gameLoop, createProjectile, etc.) permanecem com a mesma lógica base,
-    // com as correções já aplicadas nas seções acima.
-    // Cole o resto do seu código JavaScript aqui.
-    // ... (restante do seu <script>)...
-
-    // Funções que você pode colar se estiverem faltando no seu código
-    const foodTypes=[{name:'banana',effect:()=>{playerState.baseHealth+=playerState.bananaUpgrade?3:1}},{name:'leite',effect:()=>{playerState.baseHealth+=playerState.milkUpgrade?2:1}},{name:'cenoura',effect:()=>{playerState.baseAttack+= playerState.hasCarrotBasket ? 2 : 1}},{name:'couve',effect:()=>{playerState.shield+=5}}];
-    const specialFood=[{name:'ovo',effect:()=>{playerState.baseHealth+= playerState.hasOmeleteUpgrade ? 2 : 1; playerState.baseAttack+= playerState.hasOmeleteUpgrade ? 2 : 1;}}];
-    const newRoomFood = [{ name: 'milho', effect: () => { playerState.baseAttack += 2; playerState.baseHealth += 2; playerState.coins += 2; updateStatusBoard(); }}];
-
-    function createProjectile(dir, offsetY=0){ const offsetX = dir.y * offsetY; const p={div:createEntity('projectile'), x:playerState.x+24+offsetX, y:playerState.y+24-(dir.x*offsetY), speed:8, dx:dir.x, dy:dir.y, damage:playerState.attack }; p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; activeProjectiles.push(p); }
-    function createCoin(x, y) { const c = { div: createEntity('coin'), x: x, y: y }; c.div.style.left = c.x + 'px'; c.div.style.top = c.y + 'px'; activeCoins.push(c); }
-    function handlePlayerDamage(amount){ if(playerState.hasPotato && !playerState.potatoUsedThisRoom) { playerState.potatoUsedThisRoom = true; showRoomMessage('Batata salvou!', 1); return; } if(playerState.isInvincible) return; playerState.tookDamageThisRoom = true; if(playerState.hasGrapeCuca && playerState.coins > 0){ const coinAbsorb = Math.min(playerState.coins, amount * 10); playerState.coins -= coinAbsorb; amount -= coinAbsorb / 10; } if(amount <= 0) { updateStatusBoard(); return; } const shieldDmg = Math.min(playerState.shield, amount); playerState.shield -= shieldDmg; amount -= shieldDmg; if (amount > 0) playerState.baseHealth -= amount; playerState.isInvincible = true; playerState.invincibilityTimer = 1.5; updateStatusBoard(); if(playerState.health <= 0) { gameState = 'GAME_OVER'; } }
-    function createStrawberryProjectile() { if(activeEnemies.length === 0) return; const target = findNearestEnemy(playerState); if(!target) return; const dir = {x: target.x - (playerState.x + 24), y: target.y - (playerState.y + 24)}; const mag = Math.hypot(dir.x, dir.y) || 1; const p = {div: createEntity('strawberry-shot'), x: playerState.x + 16, y: playerState.y + 16, speed: 6, dx: dir.x / mag, dy: dir.y / mag, damage: 5}; p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; activeProjectiles.push(p); }
-    function createPastaProjectile(){ if(activeEnemies.length === 0) return; const t=findNearestEnemy(playerState); if(!t) return; const d={x:t.x-playerState.x, y:t.y-playerState.y}; const m=Math.hypot(d.x,d.y)||1; const p={div:createEntity('pasta-projectile'), x:playerState.x+24, y:playerState.y+24, speed:5, dx:d.x/m, dy:d.y/m}; p.div.style.left=p.x+'px'; p.div.style.top=p.y+'px'; activePastaProjectiles.push(p); }
-    function createOrangeShot(){ const dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1},{x:.7,y:.7},{x:-.7,y:.7},{x:.7,y:-.7},{x:-.7,y:-.7}]; const dmg=(2*playerState.orangeUpgrade)*(playerState.orangeJuiceUpgrade?2:1); dirs.forEach(d=>{ const p={div:createEntity('orange-projectile'), x:playerState.x+24, y:playerState.y+24, speed:4, dx:d.x, dy:d.y, damage:dmg}; p.div.style.left=p.x+'px';p.div.style.top=p.y+'px';activeOrangeProjectiles.push(p); }); }
-    function createFriendProjectile(source,dir,type,dmg){ const p={div:createEntity(type), x:source.x+16, y:source.y+16, speed:6, dx:dir.x, dy:dir.y, damage:dmg}; p.div.style.left=p.x+'px';p.div.style.top=p.y+'px';activeFriendProjectiles.push(p); }
-    function createBeeProjectile(){ const target = findNearestEnemy(playerState); if(!target) return; const dir = {x: target.x - (playerState.x + 24), y: target.y - (playerState.y + 24)}; const mag=Math.hypot(dir.x,dir.y)||1; const p={div:createEntity('bee-projectile'), x:playerState.x, y:playerState.y, speed:5, dx:dir.x/mag, dy:dir.y/mag, damage: 5 + playerState.honeyStacks, isHoming: true}; activeBeeProjectiles.push(p); }
-    function createEnemyProjectile(source, isHoming = false) { const p = { div: createEntity(`enemy-projectile ${source.type === 'maca' ? 'maca-projectile' : 'maca-verde-projectile'}`), x: source.x + 30, y: source.y + 30, damage: source.damage, isHoming: isHoming, }; const target = playerState; const dir = { x: target.x + 32 - p.x, y: target.y + 32 - p.y }; const mag = Math.hypot(dir.x, dir.y) || 1; p.speed = isHoming ? 2.5 : 5; p.dx = dir.x / mag; p.dy = dir.y / mag; activeEnemyProjectiles.push(p); }
-    function createPeraLink(pera, target) { if (!pera || !target) return; pera.linkedTo = target.id; target.linkedBy = pera.id; target.isInvulnerable = true; const link = { id: Date.now() + Math.random(), div: createEntity('pera-link'), peraId: pera.id, targetId: target.id }; activePeraLinks.push(link); }
-    function updateDynamicStats(){ playerState.bonusHealth=0; playerState.bonusAttack=0; if(playerState.hasGrapeJuice){ const bonus=Math.floor(playerState.coins/50); playerState.bonusHealth=bonus*10; playerState.bonusAttack=bonus*10; } if(playerState.hasGrapePie) playerState.shield=playerState.coins; }
-    
-    // O gameLoop principal
-    function gameLoop(){
+    function gameLoop() {
         const now = performance.now();
-        const deltaTime = (now - lastTime)/1000 || 0;
+        const deltaTime = (now - lastTime) / 1000 || 0;
         lastTime = now;
-        switch(gameState){
-            case 'MAIN_MENU': if (localStorage.getItem('meuJoguinhoState_v27')) { refs.menu.resetBtn.classList.remove('hidden'); const tempState = loadPlayerState(); if(tempState && tempState.permanentUnlocks && tempState.permanentUnlocks.cardViewerEnabled) { refs.menu.cardsBtn.classList.remove('hidden'); } } else { refs.menu.resetBtn.classList.add('hidden'); refs.menu.cardsBtn.classList.add('hidden'); } break;
+
+        switch (gameState) {
+            case 'MAIN_MENU':
+                 if (localStorage.getItem(SAVE_KEY)) { refs.menu.resetBtn.classList.remove('hidden'); const tempState = loadPlayerState(); if(tempState && tempState.permanentUnlocks && tempState.permanentUnlocks.cardViewerEnabled) { refs.menu.cardsBtn.classList.remove('hidden'); } } else { refs.menu.resetBtn.classList.add('hidden'); refs.menu.cardsBtn.classList.add('hidden'); } 
+                break;
             case 'AWAITING_CHOICE': case 'PAUSED': break;
-            case 'GAME_OVER': refs.gameOver.screen.classList.remove('hidden'); localStorage.removeItem('meuJoguinhoState_v27'); gameState = 'PAUSED'; break;
+            case 'GAME_OVER': refs.gameOver.screen.classList.remove('hidden'); localStorage.removeItem(SAVE_KEY); gameState = 'PAUSED'; break;
             case 'STARTING_ROOM': startNewRoom(); break;
-            case 'CLEARING_ROOM': updateCompanions(deltaTime); roomClearTimer -= deltaTime; if(roomClearTimer <= 0){ handleRoomClearBonus(); currentRoom++; playerState.currentRoom = currentRoom; presentPathChoice(); } break;
+            case 'CLEARING_ROOM':
+                updateCompanions(deltaTime); updateLasers(deltaTime);
+                roomClearTimer -= deltaTime;
+                if (roomClearTimer <= 0) { handleRoomClearBonus(); currentRoom++; playerState.currentRoom = currentRoom; savePlayerState(playerState); presentPathChoice(); }
+                break;
             case 'PLAYING':
-                if(keys.ArrowUp){ playerState.y -= playerState.speed; playerState.lastMoveDirection={x:0, y:-1};}
-                if(keys.ArrowDown){ playerState.y += playerState.speed; playerState.lastMoveDirection={x:0, y:1};}
-                if(keys.ArrowLeft){ playerState.x -= playerState.speed; playerState.lastMoveDirection={x:-1, y:0};}
-                if(keys.ArrowRight){ playerState.x += playerState.speed; playerState.lastMoveDirection={x:1, y:0};}
-                playerState.x = Math.max(0, Math.min(playerState.x, 800 - 64)); playerState.y = Math.max(0, Math.min(playerState.y, 600 - 64));
-                refs.player.style.left = playerState.x+'px'; refs.player.style.top = playerState.y+'px';
+                let moveDir = { x: 0, y: 0 };
+                if(keys.ArrowUp || keys.w) moveDir.y = -1;
+                if(keys.ArrowDown || keys.s) moveDir.y = 1;
+                if(keys.ArrowLeft || keys.a) moveDir.x = -1;
+                if(keys.ArrowRight || keys.d) moveDir.x = 1;
+                
+                if (moveDir.x !== 0 || moveDir.y !== 0) {
+                    const mag = Math.sqrt(moveDir.x * moveDir.x + moveDir.y * moveDir.y);
+                    playerState.x += (moveDir.x / mag) * playerState.speed;
+                    playerState.y += (moveDir.y / mag) * playerState.speed;
+                    playerState.lastMoveDirection = { x: moveDir.x, y: moveDir.y };
+                }
+
+                playerState.x = Math.max(0, Math.min(playerState.x, 800 - 64));
+                playerState.y = Math.max(0, Math.min(playerState.y, 600 - 64));
+                refs.player.style.left = playerState.x + 'px';
+                refs.player.style.top = playerState.y + 'px';
+                
                 if(playerState.isInvincible){ playerState.invincibilityTimer -= deltaTime; refs.player.style.opacity = (refs.player.style.opacity=='0.5')?'1':'0.5'; if(playerState.invincibilityTimer <= 0) { playerState.isInvincible=false; refs.player.style.opacity='1'; }}
                 if(playerState.orangeUpgrade > 0){ playerState.orangeFireTimer -= deltaTime; if(playerState.orangeFireTimer <= 0){ createOrangeShot(); playerState.orangeFireTimer = 5; }}
                 if(playerState.hasPastaShot){ playerState.pastaFireTimer -= deltaTime; if(playerState.pastaFireTimer <= 0){ createPastaProjectile(); playerState.pastaFireTimer = playerState.pastaFireRate; }}
-                if(playerState.watermelonOrb.damage > 0){ const orb = document.getElementById('watermelon-orb'); if(orb) { playerState.watermelonOrb.angle += 3 * deltaTime; orb.style.left = playerState.x+12+playerState.watermelonOrb.radius*Math.cos(playerState.watermelonOrb.angle)+'px'; orb.style.top = playerState.y+12+playerState.watermelonOrb.radius*Math.sin(playerState.watermelonOrb.angle)+'px'; }}
-                if(playerState.butterStacks > 0) { activeEnemies.forEach(e=>{ const dist = Math.hypot(e.x-playerState.x, e.y-playerState.y); if(dist < 50+playerState.butterStacks*10){ const pushVec={x:e.x-playerState.x, y:e.y-playerState.y}; const mag=Math.hypot(pushVec.x,pushVec.y)||1; e.x+=pushVec.x/mag*2; e.y+=pushVec.y/mag*2; } }); }
-                if (playerState.strawberryShotCount > 0) { strawberryFireTimer -= deltaTime; if (strawberryFireTimer <= 0) { for (let i = 0; i < playerState.strawberryShotCount; i++) { createStrawberryProjectile(); } strawberryFireTimer = 2.5; } }
+                if(playerState.watermelonOrb.damage > 0){ const orb = document.getElementById('watermelon-orb'); if(orb) { playerState.watermelonOrb.angle += 3 * deltaTime; orb.style.left = playerState.x -2 + playerState.watermelonOrb.radius*Math.cos(playerState.watermelonOrb.angle)+'px'; orb.style.top = playerState.y -2 + playerState.watermelonOrb.radius*Math.sin(playerState.watermelonOrb.angle)+'px'; }}
                 if (playerState.honeyStacks > 0) { playerState.beeSummonTimer -= deltaTime; if (playerState.beeSummonTimer <= 0) { for (let i = 0; i < 4; i++) createBeeProjectile(); playerState.beeSummonTimer = 30; } }
-                updateCompanions(deltaTime);
-
-                for(let i=activeEnemies.length-1; i>=0; i--){ const e = activeEnemies[i]; const s = e.speed * e.slowFactor; switch(e.type) { case 'uva': case 'pera': e.x += e.dx * s; e.y += e.dy * s; if(e.x<=0||e.x>=740) e.dx*=-1; if(e.y<=0||e.y>=540) e.dy*=-1; break; case 'banana': const dirToPlayer = { x: playerState.x - e.x, y: playerState.y - e.y }; const mag = Math.hypot(dirToPlayer.x, dirToPlayer.y) || 1; e.x += (dirToPlayer.x / mag) * s; e.y += (dirToPlayer.y / mag) * s; break; case 'maca': e.x += e.dx * s; if(e.x<=0||e.x>=740) e.dx*=-1; e.fireTimer -= deltaTime; if (e.fireTimer <= 0) { createEnemyProjectile(e, false); e.fireTimer = 3 + Math.random() * 2; } break; case 'maca_verde': e.y += e.dy * s; if(e.y<=0||e.y>=540) e.dy*=-1; e.fireTimer -= deltaTime; if (e.fireTimer <= 0) { createEnemyProjectile(e, true); e.fireTimer = 4 + Math.random() * 2; } break; }
-                e.div.style.left = e.x+'px'; e.div.style.top = e.y+'px'; if(playerState.watermelonOrb.damage > 0 && !e.isInvulnerable && document.getElementById('watermelon-orb') && checkCollision(document.getElementById('watermelon-orb'), e.div)) e.health -= playerState.watermelonOrb.damage * deltaTime; if(e.isPoisoned && !e.isInvulnerable) { e.health -= playerState.poisonDPS * deltaTime; e.poisonTimer -= deltaTime; if(e.poisonTimer <= 0) e.isPoisoned = false; } if(checkCollision(refs.player, e.div)) { handlePlayerDamage(e.damage); if(playerState.thornsDamage > 0 && !e.isInvulnerable) e.health -= playerState.thornsDamage; } if(e.health <= 0){ createCoin(e.x, e.y); if (e.linkedBy) { const other = activeEnemies.find(en => en.id === e.linkedBy); if (other) other.linkedTo = null; } if (e.linkedTo) { const other = activeEnemies.find(en => en.id === e.linkedTo); if (other) { other.linkedBy = null; other.isInvulnerable = false;} } e.div.remove(); activeEnemies.splice(i,1); } }
+                if (playerState.strawberryShotCount > 0) { strawberryFireTimer -= deltaTime; if (strawberryFireTimer <= 0) { for (let i = 0; i < playerState.strawberryShotCount; i++) { createStrawberryProjectile(); } strawberryFireTimer = 2.5; } }
+                if(playerState.butterStacks > 0) { activeEnemies.forEach(e=>{ const dist = Math.hypot(e.x-playerState.x, e.y-playerState.y); if(dist < 50+playerState.butterStacks*10){ const pushVec={x:e.x-playerState.x, y:e.y-playerState.y}; const mag=Math.hypot(pushVec.x,pushVec.y)||1; e.x+=pushVec.x/mag*2; e.y+=pushVec.y/mag*2; } }); }
                 
-                const moveAndCheck = (projArray, onHit) => { for(let i=projArray.length-1; i>=0; i--){ let p = projArray[i]; if((playerState.hasHomingShots && projArray === activeProjectiles) || p.isHoming || p.div.classList.contains('strawberry-shot')){ const t=findNearestEnemy(p); if(t){ const d={x:t.x-p.x, y:t.y-p.y}; const m=Math.hypot(d.x,d.y)||1; p.dx=d.x/m; p.dy=d.y/m; }} p.x += p.dx * p.speed; p.y += p.dy * p.speed; if(p.x>800||p.x<0||p.y>600||p.y<0){p.div.remove(); projArray.splice(i,1); continue;} p.div.style.left=p.x+'px'; p.div.style.top=p.y+'px'; for(let j=activeEnemies.length-1; j>=0; j--){ const e = activeEnemies[j]; if(checkCollision(p.div, e.div)){ if (e.isInvulnerable) { p.div.remove(); projArray.splice(i,1); break; } p.div.remove(); projArray.splice(i,1); onHit(e,p); break; } } } };
+                updateCompanions(deltaTime); updateLasers(deltaTime);
+
+                for(let i=activeEnemies.length-1; i>=0; i--){
+                    const e = activeEnemies[i]; const s = e.speed * e.slowFactor;
+                    switch(e.type) { case 'uva': case 'pera': e.x += e.dx * s; e.y += e.dy * s; if(e.x<=0||e.x>=740) e.dx*=-1; if(e.y<=0||e.y>=540) e.dy*=-1; break; case 'banana': const dirToPlayer = { x: playerState.x - e.x, y: playerState.y - e.y }; const mag = Math.hypot(dirToPlayer.x, dirToPlayer.y) || 1; e.x += (dirToPlayer.x / mag) * s; e.y += (dirToPlayer.y / mag) * s; break; case 'maca': e.x += e.dx * s; if(e.x<=0||e.x>=740) e.dx*=-1; e.fireTimer -= deltaTime; if (e.fireTimer <= 0) { createEnemyProjectile(e, false); e.fireTimer = 3 + Math.random() * 2; } break; case 'maca_verde': e.y += e.dy * s; if(e.y<=0||e.y>=540) e.dy*=-1; e.fireTimer -= deltaTime; if (e.fireTimer <= 0) { createEnemyProjectile(e, true); e.fireTimer = 4 + Math.random() * 2; } break; }
+                    e.div.style.left = e.x+'px'; e.div.style.top = e.y+'px'; 
+                    if(playerState.watermelonOrb.damage > 0 && !e.isInvulnerable && document.getElementById('watermelon-orb') && checkCollision(document.getElementById('watermelon-orb'), e.div)) e.health -= playerState.watermelonOrb.damage * deltaTime; 
+                    if(e.isPoisoned && !e.isInvulnerable) { e.health -= playerState.poisonDPS * deltaTime; e.poisonTimer -= deltaTime; if(e.poisonTimer <= 0) e.isPoisoned = false; } 
+                    if(checkCollision(refs.player, e.div)) { handlePlayerDamage(e.damage); if(playerState.thornsDamage > 0 && !e.isInvulnerable) e.health -= playerState.thornsDamage; } 
+                    if(e.health <= 0){ createCoin(e.x, e.y); if (e.linkedBy) { const other = activeEnemies.find(en => en.id === e.linkedBy); if (other) other.linkedTo = null; } if (e.linkedTo) { const other = activeEnemies.find(en => en.id === e.linkedTo); if (other) { other.linkedBy = null; other.isInvulnerable = false;} } e.div.remove(); activeEnemies.splice(i,1); }
+                }
+
+                const moveAndCheck = (projArray, onHit) => { for(let i=projArray.length-1; i>=0; i--){ let p = projArray[i]; if(p.isHoming || (playerState.hasHomingShots && projArray === activeProjectiles)){ const t=findNearestEnemy(p); if(t){ const d={x:t.x-p.x, y:t.y-p.y}; const m=Math.hypot(d.x,d.y)||1; p.dx=d.x/m; p.dy=d.y/m; }} p.x += p.dx * p.speed; p.y += p.dy * p.speed; if(p.x>800||p.x<0||p.y>600||p.y<0){p.div.remove(); projArray.splice(i,1); continue;} p.div.style.left=p.x+'px'; p.div.style.top=p.y+'px'; for(let j=activeEnemies.length-1; j>=0; j--){ const e = activeEnemies[j]; if(checkCollision(p.div, e.div)){ if (e.isInvulnerable) { p.div.remove(); projArray.splice(i,1); break; } p.div.remove(); projArray.splice(i,1); onHit(e,p); break; } } } };
                 moveAndCheck(activeProjectiles, (e,p)=>{ e.health -= p.damage; if(playerState.hasPoisonUpgrade && Math.random() < 0.5){ e.isPoisoned=true; e.poisonTimer=3;} });
                 moveAndCheck(activePastaProjectiles, (e,p)=>{ e.slowFactor=1-playerState.pastaSlowFactor; setTimeout(()=>e.slowFactor=1, 2000); e.health -= 0.1; });
                 moveAndCheck(activeOrangeProjectiles, (e,p)=>{ e.health -= p.damage; });
                 moveAndCheck(activeFriendProjectiles, (e,p)=>{ e.health -= p.damage; });
                 moveAndCheck(activeBeeProjectiles, (e,p)=>{ e.health -= p.damage; });
-
-                for (let i = activeEnemyProjectiles.length - 1; i >= 0; i--) { let p = activeEnemyProjectiles[i]; if (p.isHoming) { const dirToPlayer = { x: playerState.x + 32 - p.x, y: playerState.y + 32 - p.y }; const mag = Math.hypot(dirToPlayer.x, dirToPlayer.y) || 1; p.dx = dirToPlayer.x / mag; p.dy = dirToPlayer.y / mag; } p.x += p.dx * p.speed; p.y += p.dy * p.speed; if (p.x > 820 || p.x < -20 || p.y > 620 || p.y < -20) { p.div.remove(); activeEnemyProjectiles.splice(i, 1); continue; } p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; if (checkCollision(p.div, refs.player)) { handlePlayerDamage(p.damage); p.div.remove(); activeEnemyProjectiles.splice(i, 1); } }
+                
                 for (let i = activePeraLinks.length - 1; i >= 0; i--) { const link = activePeraLinks[i]; const pera = activeEnemies.find(e => e.id === link.peraId); const target = activeEnemies.find(e => e.id === link.targetId); if (!pera || !target) { if (target) target.isInvulnerable = false; link.div.remove(); activePeraLinks.splice(i, 1); continue; } const p1 = { x: pera.x + 30, y: pera.y + 30 }; const p2 = { x: target.x + 30, y: target.y + 30 }; const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y); const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI); link.div.style.width = dist + 'px'; link.div.style.left = p1.x + 'px'; link.div.style.top = p1.y + 'px'; link.div.style.transform = `rotate(${angle}deg)`; }
-
+                for (let i = activeEnemyProjectiles.length - 1; i >= 0; i--) { let p = activeEnemyProjectiles[i]; if (p.isHoming) { const dirToPlayer = { x: playerState.x + 32 - p.x, y: playerState.y + 32 - p.y }; const mag = Math.hypot(dirToPlayer.x, dirToPlayer.y) || 1; p.dx = dirToPlayer.x / mag; p.dy = dirToPlayer.y / mag; } p.x += p.dx * p.speed; p.y += p.dy * p.speed; if (p.x > 820 || p.x < -20 || p.y > 620 || p.y < -20) { p.div.remove(); activeEnemyProjectiles.splice(i, 1); continue; } p.div.style.left = p.x + 'px'; p.div.style.top = p.y + 'px'; if (checkCollision(p.div, refs.player)) { handlePlayerDamage(p.damage); p.div.remove(); activeEnemyProjectiles.splice(i, 1); } }
+                
                 for(let i=activeFood.length-1; i>=0; i--){ const f=activeFood[i]; if(checkCollision(refs.player, f.div)){f.effect();f.div.remove();activeFood.splice(i,1);}}
                 for(let i=activeCoins.length-1; i>=0; i--){ const c=activeCoins[i]; if(checkCollision(refs.player, c.div)){playerState.coins+=playerState.hasGrapesUpgrade?2:1; c.div.remove(); activeCoins.splice(i,1); updateStatusBoard();}}
                 const cheese = activeCompanions.find(c=>c.type==='cheese'); if(cheese) { [...activeFood, ...activeCoins].forEach((item, i, arr) => { if(checkCollision(cheese.div, item.div)){ if(item.effect) item.effect(); else playerState.coins+=playerState.hasGrapesUpgrade?2:1; item.div.remove(); arr.splice(i,1); updateStatusBoard(); } }); }
+                
                 if(activeEnemies.length === 0){ gameState='CLEARING_ROOM'; roomClearTimer=2.0; }
                 break;
         }
         requestAnimationFrame(gameLoop);
     }
     
-    // Inicialização do Jogo
+    function createProjectile(dir, offsetY=0){ const offsetX = dir.y * offsetY; const p={div:createEntity('projectile'), x:playerState.x+16, y:playerState.y+16-(dir.x*offsetY), speed:8, dx:dir.x, dy:dir.y, damage:playerState.attack }; activeProjectiles.push(p); }
+    function createStrawberryProjectile() { if(activeEnemies.length === 0) return; const target = findNearestEnemy(playerState); if(!target) return; const dir = {x: target.x - (playerState.x + 24), y: target.y - (playerState.y + 24)}; const mag = Math.hypot(dir.x, dir.y) || 1; const p = {div: createEntity('strawberry-shot'), x: playerState.x + 16, y: playerState.y + 16, speed: 6, dx: dir.x / mag, dy: dir.y / mag, damage: 5, isHoming: true}; activeProjectiles.push(p); }
+    function createPastaProjectile(){ if(activeEnemies.length === 0) return; const t=findNearestEnemy(playerState); if(!t) return; const d={x:t.x-playerState.x, y:t.y-playerState.y}; const m=Math.hypot(d.x,d.y)||1; const p={div:createEntity('pasta-projectile'), x:playerState.x+24, y:playerState.y+24, speed:5, dx:d.x/m, dy:d.y/m}; activePastaProjectiles.push(p); }
+    function createOrangeShot(){ const dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1},{x:.7,y:.7},{x:-.7,y:.7},{x:.7,y:-.7},{x:-.7,y:-.7}]; const dmg=(2*playerState.orangeUpgrade)*(playerState.orangeJuiceUpgrade?2:1); dirs.forEach(d=>{ const p={div:createEntity('orange-projectile'), x:playerState.x+16, y:playerState.y+16, speed:4, dx:d.x, dy:d.y, damage:dmg}; activeOrangeProjectiles.push(p); }); }
+    function createFriendProjectile(source,dir,type,dmg){ const p={div:createEntity(type), x:source.x+24, y:source.y+24, speed:6, dx:dir.x, dy:dir.y, damage:dmg}; activeFriendProjectiles.push(p); }
+    function createBeeProjectile(){ const target = findNearestEnemy(playerState); if(!target) return; const dir = {x: target.x - (playerState.x + 24), y: target.y - (playerState.y + 24)}; const mag=Math.hypot(dir.x,dir.y)||1; const p={div:createEntity('bee-projectile'), x:playerState.x+16, y:playerState.y+16, speed:5, dx:dir.x/mag, dy:dir.y/mag, damage: 5 + playerState.honeyStacks, isHoming: true}; activeBeeProjectiles.push(p); }
+    function createEnemyProjectile(source, isHoming = false) { const p = { div: createEntity(`enemy-projectile ${source.type === 'maca' ? 'maca-projectile' : 'maca-verde-projectile'}`), x: source.x + 30, y: source.y + 30, damage: source.damage, isHoming: isHoming, speed: isHoming ? 2.5 : 5, }; const target = playerState; const dir = { x: target.x + 32 - p.x, y: target.y + 32 - p.y }; const mag = Math.hypot(dir.x, dir.y) || 1; p.dx = dir.x / mag; p.dy = dir.y / mag; activeEnemyProjectiles.push(p); }
+    function createCoin(x, y) { const c = { div: createEntity('coin'), x: x, y: y }; c.div.style.left = x + 'px'; c.div.style.top = y + 'px'; activeCoins.push(c); }
+    function handlePlayerDamage(amount){ if(playerState.hasPotato && !playerState.potatoUsedThisRoom) { playerState.potatoUsedThisRoom = true; showRoomMessage('Batata salvou!', 1); return; } if(playerState.isInvincible) return; playerState.tookDamageThisRoom = true; if(playerState.hasGrapeCuca && playerState.coins > 0){ const coinAbsorb = Math.min(playerState.coins, amount * 10); playerState.coins -= coinAbsorb; amount -= coinAbsorb / 10; } if(amount <= 0) { updateStatusBoard(); return; } const shieldDmg = Math.min(playerState.shield, amount); playerState.shield -= shieldDmg; amount -= shieldDmg; if (amount > 0) playerState.baseHealth -= amount; playerState.isInvincible = true; playerState.invincibilityTimer = 1.5; updateStatusBoard(); if(playerState.health <= 0) { gameState = 'GAME_OVER'; } }
+    function updateDynamicStats(){ playerState.bonusHealth=0; playerState.bonusAttack=0; if(playerState.hasGrapeJuice){ const bonus=Math.floor(playerState.coins/50); playerState.bonusHealth=bonus*10; playerState.bonusAttack=bonus*10; } if(playerState.hasGrapePie) playerState.shield=playerState.coins; }
+    
+    // --- INICIALIZAÇÃO E EVENTOS ---
+    
     refs.menu.playBtn.addEventListener('click', () => { playerState = loadPlayerState() || getNewPlayerState(); refs.menu.main.classList.add('hidden'); refs.mainContainer.classList.remove('hidden'); currentRoom = playerState.currentRoom; updateStatusBoard(); updateInventoryDisplay(); gameState = 'STARTING_ROOM'; });
-    refs.menu.resetBtn.addEventListener('click', () => { if (confirm("Você tem certeza que deseja apagar todo o seu progresso? Esta ação não pode ser desfeita.")) { localStorage.removeItem('meuJoguinhoState_v27'); alert("Seu progresso foi apagado! Uma nova jornada o aguarda."); location.reload(); } });
-    refs.menu.encyclopediaBtn.addEventListener('click', () => { populateEncyclopedia(); refs.encyclopedia.screen.classList.remove('hidden'); });
+    refs.menu.resetBtn.addEventListener('click', () => { if (confirm("Você tem certeza que deseja apagar todo o seu progresso? Esta ação não pode ser desfeita.")) { localStorage.removeItem(SAVE_KEY); alert("Seu progresso foi apagado! Uma nova jornada o aguarda."); location.reload(); } });
+    refs.menu.encyclopediaBtn.addEventListener('click', () => { refs.encyclopedia.screen.classList.remove('hidden'); populateEncyclopedia("all"); });
     refs.encyclopedia.closeBtn.addEventListener('click', () => { refs.encyclopedia.screen.classList.add('hidden'); });
     refs.encyclopedia.filters.addEventListener('click', (e) => { if (e.target.classList.contains('filter-button')) { document.querySelector('.filter-button.active').classList.remove('active'); e.target.classList.add('active'); populateEncyclopedia(e.target.getAttribute('data-filter')); } });
+    refs.menu.cardsBtn.addEventListener('click', () => { playerState = loadPlayerState(); if(playerState) { refs.menu.main.classList.add('hidden'); populateCardsScreen(); refs.cards.screen.classList.remove('hidden'); } else { alert("Nenhum jogo salvo encontrado."); } });
+    refs.cards.closeBtn.addEventListener('click', () => { refs.cards.screen.classList.add('hidden'); refs.menu.main.classList.remove('hidden'); });
     refs.gameOver.returnBtn.addEventListener('click', () => { location.reload(); });
-    window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) { e.preventDefault(); keys[e.key] = true; } if(e.key === ' ' && gameState === 'PLAYING'){ e.preventDefault(); const dir = playerState.aimInMoveDirection ? playerState.lastMoveDirection : {x:0, y:-1}; if(playerState.hasDoubleShot){ createProjectile(dir, 10); createProjectile(dir, -10); } else { createProjectile(dir); } } });
-    window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
     
+    window.addEventListener('keydown', e => { 
+        const key = e.key; 
+        if (keys.hasOwnProperty(key)) { 
+            e.preventDefault(); 
+            keys[key] = true; 
+        } 
+        if (e.code === 'Space' && gameState === 'PLAYING') { 
+            e.preventDefault(); 
+            const dir = playerState.aimInMoveDirection ? playerState.lastMoveDirection : {x:0, y:-1}; 
+            if (playerState.hasDoubleShot) { 
+                createProjectile(dir, 10); createProjectile(dir, -10); 
+            } else { 
+                createProjectile(dir); 
+            } 
+        } 
+    });
+    window.addEventListener('keyup', e => { 
+        const key = e.key;
+        if (keys.hasOwnProperty(key)) { 
+            keys[key] = false; 
+        } 
+    });
+
     gameLoop();
     </script>
 </body>
