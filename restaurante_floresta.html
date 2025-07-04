@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante Sabor da Floresta</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        .hidden { display: none !important; }
+        #main-container { display: flex; gap: 20px; align-items: flex-start; }
+        #game-container { position: relative; }
+        #game-area { width: 800px; height: 600px; border: 2px solid #fff; background: url('imagens/bosque_vermelho.png') center/cover no-repeat; position: relative; overflow: hidden; }
+        .entity { position: absolute; background-size: contain; background-repeat: no-repeat; background-position: center; transition: transform 0.2s; }
+        .entity.interactive { transform: scale(1.1); cursor: pointer; }
+        #player { width: 64px; height: 64px; background-image: url('imagens/gatinho_pixel_32x32.png'); z-index: 10; }
+        #chef-frajola { width: 96px; height: 96px; background-image: url('imagens/gato_cozinheiro.png'); z-index: 9; }
+        #pirate-cat { width: 80px; height: 80px; background-image: url('imagens/gato_pirata.png'); z-index: 9; }
+        #ninja-cat { width: 80px; height: 80px; background-image: url('imagens/gato_ninja.png'); z-index: 9; }
+        #restaurant-building { width: 300px; height: 400px; background-image: url('imagens/restaurante.png'); z-index: 8; }
+        #ui-column { display: flex; flex-direction: column; align-items: center; }
+        #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+        #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+        #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+        .inventory-item { padding: 5px; border-bottom: 1px solid #444; }
+        .dialogue-like-box { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 760px; padding: 20px; background-color: rgba(10, 20, 40, 0.95); border: 3px solid #bda25a; border-radius: 10px; box-sizing: border-box; text-align: center; z-index: 200; }
+        #dialogue-box p, #bestiary-box p { font-size: 20px; margin: 0 0 15px 0; line-height: 1.4; white-space: pre-wrap; }
+        #dialogue-options button { font-size: 16px; padding: 12px 22px; border: 2px solid #bda25a; background-color: #2c3e50; color: white; border-radius: 5px; cursor: pointer; margin: 5px; text-align: left; line-height: 1.3; }
+        #dialogue-options button .item-desc { font-size: 13px; opacity: 0.8; font-weight: normal; }
+        #dialogue-options button:hover:not(:disabled) { background-color: #4a6581; }
+        #dialogue-options button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #proceed-button { position: absolute; bottom: 20px; right: 20px; padding: 15px 30px; font-size: 22px; cursor: pointer; background-color:#27ae60; border: 2px solid #2ecc71; color: white; border-radius: 10px; z-index: 150; }
+        
+        #bestiary-content { max-height: 400px; overflow-y: auto; text-align: left; padding-right: 10px; }
+        .bestiary-entry { background-color: #1c2833; padding: 15px; margin-bottom: 10px; border-left: 5px solid #c0392b; border-radius: 5px; }
+        .bestiary-entry h3 { margin: 0 0 5px; color: #e74c3c; }
+        .bestiary-entry p { font-size: 16px; margin-bottom: 8px; }
+        .bestiary-entry .stats { font-size: 14px; color: #95a5a6; }
+    </style>
+</head>
+<body>
+    <div id="main-container"> 
+        <div id="game-container"> 
+            <div id="game-area">
+                <div id="player" class="entity"></div>
+                <div id="restaurant-building" class="entity"></div>
+                <div id="chef-frajola" class="entity"></div>
+                <div id="pirate-cat" class="entity"></div>
+                <div id="ninja-cat" class="entity"></div>
+                
+                <div id="dialogue-box" class="dialogue-like-box hidden"> 
+                    <p id="dialogue-text"></p>
+                    <div id="dialogue-options"></div>
+                </div>
+
+                <div id="bestiary-box" class="dialogue-like-box hidden">
+                    <h2 style="margin-top:0;">Bestiário do Gato Pirata</h2>
+                    <div id="bestiary-content"></div>
+                    <button id="close-bestiary-button" style="margin-top: 15px; font-size: 18px; padding: 10px 20px;">Fechar</button>
+                </div>
+                
+                <button id="proceed-button">Sair do Restaurante</button>
+            </div>
+        </div> 
+        <div id="ui-column"> 
+             <div id="status-board">
+                <div>Sala: <span id="current-room"></span></div> 
+                <div>Vida: <span id="player-health"></span></div> 
+                <div>Escudo: <span id="player-shield"></span></div> 
+                <div>Ataque: <span id="player-attack"></span></div> 
+                <div>Moedas: <span id="player-coins"></span></div> 
+            </div> 
+            <div id="inventory-display"><h3 id="inventory-title">Inventário</h3><div id="inventory-list"></div></div> 
+        </div> 
+    </div>
+
+    <script>
+    // Cole aqui suas funções de save/load (getNewPlayerState, savePlayerState, loadPlayerState)
+    function getNewPlayerState() { const state = { x: 385, y: 520, speed: 4, baseHealth: 10, bonusHealth: 0, baseAttack: 1, bonusAttack: 0, shield: 0, coins: 30, inventory: new Map(), currentRoom: 0, isInvincible: false, invincibilityTimer: 0, lastMoveDirection: { x: 0, y: -1 }, shopRerolls: 0, extraShopSlots: 0, rareFindChance: 0.2, legendaryFindChance: 0.05, milkUpgrade: false, bananaUpgrade: false, canSpawnEggs: false, hasGrapesUpgrade: false, hasPoisonUpgrade: false, poisonDPS: 5, aimInMoveDirection: false, hasDoubleShot: false, hasHomingShots: false, hasPastaShot: false, pastaFireRate: 1, pastaFireTimer: 1, pastaSlowFactor: 0, watermelonOrb: { damage: 0, angle: 0, radius: 70 }, orangeUpgrade: 0, orangeFireTimer: 5, orangeJuiceUpgrade: false, butterStacks: 0, greenGrapesStacks: 0, hasGrapePie: false, hasGrapeCuca: false, hasWhiteGrape: false, hasGrapeJuice: false, companionsToSummon: [], companionBuffs: { bonusHealth: 0, bonusDamage: 0 }, strawberryShotCount: 0, hasCornUpgrade: false, cornSpawnChance: 0, hasPotato: false, potatoUsedThisRoom: false, thornsDamage: 0, hasFish: false, hasRice: false, hasBean: false, hasPepper: false, hasBrigadeiro: false, hasSwissCheese: false, hasOmeleteUpgrade: false, honeyStacks: 0, beeSummonTimer: 30, hasCarrotBasket: false, tookDamageThisRoom: false, cartasCompradas: [], permanentUnlocks: { hasOldManMap: false }, eventStates: { turtleMerchant: 'not_met' }, stackableItems: { uva: 1, batata: 1 }, spawnRateModifiers: { leite: 1.0, legumes: 1.0, banana: 1.0 } }; Object.defineProperty(state, 'health', { get() { return state.baseHealth + state.bonusHealth; }, configurable: true }); Object.defineProperty(state, 'attack', { get() { return state.baseAttack + state.bonusAttack; }, configurable: true }); return state; }
+    function savePlayerState(state) { const savableState = { ...state, inventory: Array.from(state.inventory.entries()) }; localStorage.setItem('meuJoguinhoState_v27', JSON.stringify(savableState)); }
+    function loadPlayerState() { const savedStateJSON = localStorage.getItem('meuJoguinhoState_v27'); if (!savedStateJSON) return null; const loadedObject = JSON.parse(savedStateJSON); const restoredState = { ...getNewPlayerState(), ...loadedObject, inventory: new Map(loadedObject.inventory) }; Object.defineProperty(restoredState, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true }); Object.defineProperty(restoredState, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true }); return restoredState; };
+
+    const refs = {
+        player: document.getElementById('player'),
+        chef: document.getElementById('chef-frajola'),
+        pirate: document.getElementById('pirate-cat'),
+        ninja: document.getElementById('ninja-cat'),
+        restaurant: document.getElementById('restaurant-building'),
+        dialogueBox: document.getElementById('dialogue-box'),
+        dialogueText: document.getElementById('dialogue-text'),
+        dialogueOptions: document.getElementById('dialogue-options'),
+        bestiaryBox: document.getElementById('bestiary-box'),
+        bestiaryContent: document.getElementById('bestiary-content'),
+        closeBestiaryButton: document.getElementById('close-bestiary-button'),
+        proceedButton: document.getElementById('proceed-button'),
+        ui: { room: document.getElementById('current-room'), health: document.getElementById('player-health'), shield: document.getElementById('player-shield'), attack: document.getElementById('player-attack'), coins: document.getElementById('player-coins'), inventory: document.getElementById('inventory-list') }
+    };
+    
+    let playerState = loadPlayerState() || getNewPlayerState();
+    let gameState = 'IDLE';
+    let hasReceivedPasta = false;
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+    const interactiveNPCs = [
+        { element: refs.chef, proximity: false, action: interactWithFrajola },
+        { element: refs.pirate, proximity: false, action: interactWithPirate },
+        { element: refs.ninja, proximity: false, action: interactWithNinja },
+    ];
+
+    function showDialogue(text, options = []) {
+        gameState = 'DIALOGUE';
+        refs.dialogueText.textContent = text;
+        refs.dialogueOptions.innerHTML = '';
+        options.forEach(option => {
+            const button = document.createElement('button');
+            button.innerHTML = option.text;
+            button.onclick = () => { option.action(); };
+            if (option.condition && !option.condition()) {
+                button.disabled = true;
+            }
+            refs.dialogueOptions.appendChild(button);
+        });
+        refs.dialogueBox.classList.remove('hidden');
+    }
+    
+    function hideDialogue() { refs.dialogueBox.classList.add('hidden'); gameState = 'IDLE'; }
+
+    function interactWithFrajola() {
+        gameState = 'DIALOGUE';
+        const text = "Bem-vindo ao 'Sabor da Floresta'! Sou Frajola, o chef! Meu pai, que os céus o tenham, me ensinou que a base para a força de um herói é uma refeição equilibrada! Precisamos de energia dos Carboidratos, força das Proteínas e defesas das Vitaminas e Minerais. Tudo na medida certa, as famosas porções diárias! Gostaria de ver o cardápio?";
+        showDialogue(text, [
+            { text: "Ver cardápio", action: showShopMenu },
+            { text: "Agora não", action: hideDialogue }
+        ]);
+    }
+
+    function showShopMenu() {
+        const menuItems = [
+            { name: "Pudim de Uva", desc: "Permite que o item 'Uva' apareça mais vezes na loja.", action: () => { playerState.stackableItems.uva = (playerState.stackableItems.uva || 1) + 1; alert("Agora você pode comprar mais uvas por visita à loja!"); }},
+            { name: "Purê de Batata", desc: "Permite que o item 'Batata' apareça mais vezes na loja.", action: () => { playerState.stackableItems.batata = (playerState.stackableItems.batata || 1) + 1; alert("Agora você pode comprar mais batatas por visita à loja!"); }},
+            { name: "Picadinho de Queijo", desc: "Aumenta a chance de 'Leite' aparecer nas fases.", action: () => { playerState.spawnRateModifiers.leite = (playerState.spawnRateModifiers.leite || 1.0) + 0.2; alert("A chance de encontrar Leite aumentou!"); }},
+            { name: "Sopa de Legumes", desc: "Aumenta a chance de Hortaliças aparecerem nas fases.", action: () => { playerState.spawnRateModifiers.legumes = (playerState.spawnRateModifiers.legumes || 1.0) + 0.2; alert("A chance de encontrar Hortaliças aumentou!"); }},
+            { name: "Salada de Frutas", desc: "Aumenta a chance de 'Banana' aparecer nas fases.", action: () => { playerState.spawnRateModifiers.banana = (playerState.spawnRateModifiers.banana || 1.0) + 0.2; alert("A chance de encontrar Bananas aumentou!"); }}
+        ];
+
+        const options = menuItems.map(item => ({
+            text: `<b>${item.name}</b> (20 Moedas)<br><span class="item-desc">${item.desc}</span>`,
+            condition: () => playerState.coins >= 20,
+            action: () => {
+                if (playerState.coins >= 20) {
+                    playerState.coins -= 20;
+                    item.action();
+                    updateUI();
+                    showShopMenu(); 
+                }
+            }
+        }));
+
+        options.push({ text: "<b>Sair do Cardápio</b>", action: hideDialogue });
+        showDialogue("Cada prato fortalece sua jornada de uma maneira diferente! O que vai ser?", options);
+    }
+
+    function interactWithPirate() { gameState = 'DIALOGUE'; const text = "Yarrr, marujo! Carne é minha comida favorita, mas um pirata de verdade come de tudo pra sobreviver! Eu também luto contra a Rainha Uva. De frutas endiabradas, eu entendo! Quer que eu te mostre o que sei?"; showDialogue(text, [ { text: "Mostrar o que sabe!", action: showBestiary }, { text: "Deixa pra lá, lobo do mar.", action: hideDialogue } ]); }
+    function showBestiary() { hideDialogue(); gameState = 'DIALOGUE'; refs.bestiaryBox.classList.remove('hidden'); const roomMultiplier = Math.pow(2, Math.floor(playerState.currentRoom / 5)); const enemies = [ { name: "Soldado Uva", desc: "Esses pestinhas são a linha de frente. Saltitantes e irritantes, eles tentam te cercar. Fracos sozinhos, mas perigosos em bando, como um cacho venenoso!", stats: `Vida: ${(3 + playerState.currentRoom) * roomMultiplier}, Dano: ${1 * roomMultiplier}` }, { name: "Guarda Banana", desc: "Grandes e brutos, esses descascados correm na sua direção sem pensar! Eles vêm das bordas da tela para te emboscar. Cuidado com a casca... e com o soco!", stats: `Vida: ${4 * roomMultiplier}, Dano: ${2 * roomMultiplier}` }, { name: "Xamã Pera", desc: "Argh, esses são os piores! Covardes que se escondem e lançam feitiços de proteção em seus aliados, tornando-os invulneráveis! Derrube o Xamã primeiro, ou a batalha nunca terá fim!", stats: `Vida: ${50 * roomMultiplier}, Dano: 0 (Suporte)` }, { name: "Bruxo Maçã Rubra", desc: "Ficam parados atirando sementes amaldiçoadas. Parecem fáceis, mas a chuva de projéteis pode te pegar de surpresa. Não subestime uma maçã parada!", stats: `Vida: ${5 * roomMultiplier}, Dano do Projétil: ${3 * roomMultiplier}` }, { name: "Bruxo Maçã Verde", desc: "Parente azedo do Maçã Rubra. Ele atira sementes teleguiadas, que te perseguem como um papagaio atrás de um biscoito! Desvie bem ou vai levar uma mordida mágica!", stats: `Vida: ${1 * roomMultiplier}, Dano do Projétil: ${3 * roomMultiplier}` } ]; refs.bestiaryContent.innerHTML = enemies.map(e => ` <div class="bestiary-entry"> <h3>${e.name}</h3> <p>${e.desc}</p> <p class="stats"><b>Status Atuais (aprox.):</b> ${e.stats}</p> </div> `).join(''); }
+
+    // --- FUNÇÃO ATUALIZADA ---
+    function interactWithNinja() {
+        gameState = 'DIALOGUE';
+        if (hasReceivedPasta) {
+            showDialogue("O caminho do herói, como o do ninja, exige um estômago satisfeito. Fico feliz em ter ajudado.", [{ text: "Obrigado novamente.", action: hideDialogue }]);
+            return;
+        }
+        const text = "Um ninja aprecia a sutileza e o equilíbrio... como este macarrão do Chef Frajola. Tem carboidratos, carne e vegetais... a combinação perfeita. Aceite um pouco. A jornada é longa.";
+        showDialogue(text, [
+            { 
+                text: "Aceitar o Macarrão", 
+                action: () => {
+                    hasReceivedPasta = true;
+                    // Aplica os efeitos do item "Macarrão" diretamente no estado do jogador
+                    playerState.hasPastaShot = true;
+                    playerState.pastaSlowFactor += 0.1;
+                    
+                    // Adiciona o item "Macarrão" ao inventário para registro visual
+                    const currentMacarrao = playerState.inventory.get('Macarrão') || 0;
+                    playerState.inventory.set('Macarrão', currentMacarrao + 1);
+                    
+                    updateUI();
+                    showDialogue("Você recebeu: Macarrão! (Ganha um tiro automático que causa lentidão)", [{ text: "Delicioso!", action: hideDialogue }]);
+                }
+            },
+            { text: "Recusar educadamente", action: hideDialogue }
+        ]);
+    }
+    
+    function gameLoop() {
+        if (gameState === 'IDLE') {
+            if (keys.ArrowUp) playerState.y -= playerState.speed;
+            if (keys.ArrowDown) playerState.y += playerState.speed;
+            if (keys.ArrowLeft) playerState.x -= playerState.speed;
+            if (keys.ArrowRight) playerState.x += playerState.speed;
+            playerState.x = Math.max(0, Math.min(playerState.x, 800 - 64));
+            playerState.y = Math.max(0, Math.min(playerState.y, 600 - 64));
+            refs.player.style.left = `${playerState.x}px`;
+            refs.player.style.top = `${playerState.y}px`;
+
+            interactiveNPCs.forEach(npc => {
+                const isColliding = checkCollision(refs.player, npc.element, 20);
+                if (isColliding && !npc.proximity) {
+                    npc.proximity = true;
+                    npc.element.classList.add('interactive');
+                    npc.element.addEventListener('click', npc.action);
+                } else if (!isColliding && npc.proximity) {
+                    npc.proximity = false;
+                    npc.element.classList.remove('interactive');
+                    npc.element.removeEventListener('click', npc.action);
+                }
+            });
+        }
+        requestAnimationFrame(gameLoop);
+    }
+    
+    function init() {
+        playerState.x = 385; playerState.y = 500;
+        refs.restaurant.style.left = '500px'; refs.restaurant.style.top = '100px';
+        refs.chef.style.left = '352px'; refs.chef.style.top = '250px';
+        refs.pirate.style.left = '100px'; refs.pirate.style.top = '350px';
+        refs.ninja.style.left = '200px'; refs.ninja.style.top = '350px';
+        updateUI();
+        gameLoop();
+    }
+
+    refs.proceedButton.addEventListener('click', () => { savePlayerState(playerState); window.location.href = 'jogosalas.html'; });
+    refs.closeBestiaryButton.addEventListener('click', () => { refs.bestiaryBox.classList.add('hidden'); gameState = 'IDLE'; });
+    document.addEventListener('keydown', e => { if (keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+    window.addEventListener('keyup', e => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+    
+    function checkCollision(div1, div2, inset = 0) { const r1 = div1.getBoundingClientRect(); const r2 = div2.getBoundingClientRect(); const sr2 = { left: r2.left - inset, right: r2.right + inset, top: r2.top - inset, bottom: r2.bottom + inset }; return !(r1.right < sr2.left || r1.left > sr2.right || r1.bottom < sr2.top || r1.top > sr2.bottom); }
+    updateUI = () => { refs.ui.room.textContent = playerState.currentRoom; refs.ui.health.textContent = playerState.health.toFixed(0); refs.ui.shield.textContent = playerState.shield.toFixed(0); refs.ui.attack.textContent = playerState.attack.toFixed(0); refs.ui.coins.textContent = playerState.coins; refs.ui.inventory.innerHTML = ''; playerState.inventory.forEach((count, name) => { const itemEl = document.createElement('div'); itemEl.className = 'inventory-item'; itemEl.textContent = `${name} ${count > 1 ? `x${count}`: ''}`; refs.ui.inventory.appendChild(itemEl); }); }
+    
+    init();
+    </script>
+</body>
+</html>
