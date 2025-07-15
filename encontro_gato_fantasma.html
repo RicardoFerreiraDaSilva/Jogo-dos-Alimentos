@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Bosque Fantasma - Chefe Final</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #222; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        .hidden { display: none !important; }
+        #main-container { display: flex; gap: 20px; align-items: flex-start; }
+        #game-container { position: relative; }
+        #game-area { width: 800px; height: 600px; border: 2px solid #fff; background: url('imagens/bosque_fantasma.png') center/cover no-repeat; position: relative; overflow: hidden; }
+        .entity { position: absolute; background-size: contain; background-repeat: no-repeat; transition: opacity 0.3s; }
+        #player { width: 64px; height: 64px; background-image: url('imagens/gatinho_pixel_32x32.png'); z-index: 10; }
+        #ghost-cat { width: 128px; height: 128px; background-image: url('imagens/gato_fantasma2.png'); z-index: 9; transition: opacity 0.3s ease-in-out; }
+        #ghost-cat.initial { width: 96px; height: 96px; background-image: url('imagens/gato_fantasma1.png'); }
+        
+        /* --- Entidades de Combate --- */
+        .projectile, .paw-attack, .minion-ghost { position: absolute; background-size: contain; background-repeat: no-repeat; z-index: 20; }
+        .paw-attack.vertical { width: 80px; height: 150px; background-image: url('imagens/pata_ataque_vertical.png'); }
+        .paw-attack.left { width: 150px; height: 80px; background-image: url('imagens/pata_ataque_esquerdo.png'); }
+        .paw-attack.right { width: 150px; height: 80px; background-image: url('imagens/pata_ataque_direito.png'); }
+        .minion-ghost { width: 50px; height: 50px; background-image: url('imagens/minion_fantasma.png'); }
+        .ghost-projectile { width: 20px; height: 20px; background-image: url('imagens/tiro_fantasma.png'); }
+        .player-projectile { width: 32px; height: 32px; background-image: url('imagens/tiro_heroi.png'); }
+        
+        /* --- UI --- */
+        #ui-column { display: flex; flex-direction: column; align-items: center; }
+        #status-board { font-size: 18px; margin-bottom: 10px; text-align: left; width: 250px; }
+        #inventory-display { width: 250px; height: 550px; background-color: #1c2833; border: 2px solid #fff; padding: 10px; box-sizing: border-box; overflow-y: auto; }
+        #inventory-title { margin: 0 0 10px 0; text-align: center; font-size: 20px; }
+        .inventory-item { padding: 5px; border-bottom: 1px solid #444; }
+        .legendary-item { color: #9b59b6; font-weight: bold; border: 1px solid #9b59b6; padding: 2px; border-radius: 3px;}
+        #dialogue-box { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 750px; padding: 20px; background-color: rgba(10, 20, 40, 0.9); border: 3px solid #bda25a; border-radius: 10px; box-sizing: border-box; text-align: center; z-index: 200; }
+        #dialogue-text { font-size: 22px; margin: 0 0 20px 0; min-height: 50px; line-height: 1.4; white-space: pre-wrap; }
+        #dialogue-options button { font-size: 18px; padding: 10px 20px; border: 2px solid #bda25a; background-color: #2c3e50; color: white; border-radius: 5px; cursor: pointer; margin: 5px; }
+        #dialogue-options button:hover { background-color: #4a6581; }
+        #proceed-button { position: absolute; bottom: 20px; right: 20px; padding: 15px 30px; font-size: 22px; cursor: pointer; background-color:#27ae60; border: 2px solid #2ecc71; color: white; border-radius: 10px; z-index: 150; transition: background-color 0.3s, border-color 0.3s; }
+        #proceed-button.disabled { background-color: #bdc3c7; border-color: #95a5a6; cursor: not-allowed; }
+        
+        /* --- Efeitos Visuais --- */
+        #fade-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: black; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 1s ease-in-out; }
+        #ability-cooldown-display { position: absolute; top: 70px; left: 10px; z-index: 100; background-color: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px; font-size: 14px; }
+        #vulnerability-display { position: absolute; top: 100px; left: 10px; z-index: 100; background-color: rgba(192, 57, 43, 0.7); padding: 5px; border-radius: 5px; font-size: 14px; color: white; }
+        
+        /* --- UI de Combate --- */
+        .status-bar-container { background-color: #333; border: 1px solid #999; border-radius: 5px; margin-bottom: 5px; width: 200px; height: 20px; padding: 2px; box-sizing: border-box; }
+        .status-bar { height: 100%; width: 100%; border-radius: 3px; transition: width 0.3s ease-out; }
+        .health { background-color: #c0392b; }
+        .shield { background-color: #3498db; }
+        #player-combat-ui { position: absolute; top: 10px; left: 10px; z-index: 100;}
+        #boss-combat-ui { position: absolute; top: 10px; right: 10px; text-align: right; z-index: 100;}
+        #player-combat-ui p, #boss-combat-ui p { margin: 0 0 5px 0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="main-container"> 
+        <div id="game-container"> 
+            <div id="game-area">
+                <div id="player" class="entity"></div>
+                <div id="ghost-cat" class="entity initial"></div>
+                
+                <div id="player-combat-ui" class="hidden">
+                    <p>Herói</p>
+                    <div class="status-bar-container"><div id="player-health-bar" class="status-bar health"></div></div>
+                    <div class="status-bar-container"><div id="player-shield-bar" class="status-bar shield"></div></div>
+                    <div id="ability-cooldown-display" class="hidden">Habilidade (Z)</div>
+                    <div id="vulnerability-display" class="hidden">Vulnerável!</div>
+                </div>
+
+                <div id="boss-combat-ui" class="hidden">
+                    <p>Gato Fantasma</p>
+                    <div class="status-bar-container"><div id="boss-health-bar" class="status-bar health"></div></div>
+                </div>
+                
+                <div id="dialogue-box" class="hidden"> 
+                    <p id="dialogue-text"></p>
+                    <div id="dialogue-options"></div>
+                </div>
+                
+                <button id="proceed-button" class="hidden">Sair da Sala</button>
+                <div id="fade-overlay"></div>
+            </div>
+        </div> 
+        <div id="ui-column"> 
+            <div id="status-board">
+                <div>Sala: <span id="current-room"></span></div> 
+                <div>Vida: <span id="player-health"></span></div> 
+                <div>Escudo: <span id="player-shield"></span></div> 
+                <div>Ataque: <span id="player-attack"></span></div> 
+                <div>Moedas: <span id="player-coins"></span></div> 
+            </div> 
+            <div id="inventory-display"><h3 id="inventory-title">Inventário</h3><div id="inventory-list"></div></div> 
+        </div> 
+    </div>
+
+    <script>
+    // --- LÓGICA DE DADOS (A "MOCHILA MÁGICA") ---
+    function getNewPlayerState() { 
+        const state = { 
+            x: 385, y: 520, speed: 4.5, baseHealth: 10, bonusHealth: 0, baseAttack: 1, bonusAttack: 0, shield: 0, 
+            coins: 30, inventory: new Map(), currentRoom: 0, isInvincible: false, tookDamageThisRoom: false, 
+            hasGhostPeas: false, hasDefeatedGhostCat: false, vulnerabilityStacks: 0,
+            lastMoveDirection: { x: 0, y: -1 }, aimInMoveDirection: false, hasDoubleShot: false,
+        }; 
+        Object.defineProperty(state, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true }); 
+        Object.defineProperty(state, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true }); 
+        return state; 
+    }
+    function savePlayerState(state) { const savableState = { ...state, inventory: Array.from(state.inventory.entries()) }; localStorage.setItem('meuJoguinhoState_v27', JSON.stringify(savableState)); }
+    function loadPlayerState() { 
+        const savedStateJSON = localStorage.getItem('meuJoguinhoState_v27'); 
+        if (!savedStateJSON) return null; 
+        const loadedObject = JSON.parse(savedStateJSON); 
+        const restoredState = { ...getNewPlayerState(), ...loadedObject, inventory: new Map(loadedObject.inventory || []) }; 
+        Object.defineProperty(restoredState, 'health', { get() { return this.baseHealth + this.bonusHealth; }, configurable: true }); 
+        Object.defineProperty(restoredState, 'attack', { get() { return this.baseAttack + this.bonusAttack; }, configurable: true }); 
+        return restoredState; 
+    };
+
+    // --- SETUP DA PÁGINA ---
+    const refs = {
+        player: document.getElementById('player'), npc: document.getElementById('ghost-cat'), gameArea: document.getElementById('game-area'),
+        dialogueBox: document.getElementById('dialogue-box'), dialogueText: document.getElementById('dialogue-text'), dialogueOptions: document.getElementById('dialogue-options'),
+        proceedButton: document.getElementById('proceed-button'), fadeOverlay: document.getElementById('fade-overlay'),
+        combatUI: { 
+            player: document.getElementById('player-combat-ui'), boss: document.getElementById('boss-combat-ui'), playerHealth: document.getElementById('player-health-bar'), 
+            playerShield: document.getElementById('player-shield-bar'), bossHealth: document.getElementById('boss-health-bar'),
+            abilityCooldown: document.getElementById('ability-cooldown-display'), vulnerability: document.getElementById('vulnerability-display')
+        },
+        ui: { room: document.getElementById('current-room'), health: document.getElementById('player-health'), shield: document.getElementById('player-shield'), attack: document.getElementById('player-attack'), coins: document.getElementById('player-coins'), inventory: document.getElementById('inventory-list') }
+    };
+    
+    let playerState = loadPlayerState() || getNewPlayerState();
+    let bossState = {};
+    let gameState = 'IDLE';
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+    let isNearCat = false;
+    let combatEntities = [];
+    let activeProjectiles = [];
+    let abilityOnCooldown = false;
+
+    // --- LÓGICA DE UI E GERAL ---
+    function updateUI() {
+        if (!playerState) return;
+        const ui = refs.ui;
+        ui.room.textContent = playerState.currentRoom; ui.health.textContent = playerState.health.toFixed(0); ui.shield.textContent = playerState.shield.toFixed(0); ui.attack.textContent = playerState.attack.toFixed(0); ui.coins.textContent = playerState.coins;
+        ui.inventory.innerHTML = '';
+        playerState.inventory.forEach((count, name) => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'inventory-item';
+            if (name === 'Ervilhas Fantasmas') itemEl.classList.add('legendary-item');
+            itemEl.textContent = `${name} ${count > 1 ? `x${count}` : ''}`;
+            ui.inventory.appendChild(itemEl);
+        });
+    }
+    function checkCollision(div1, div2) { const r1 = div1.getBoundingClientRect(); const r2 = div2.getBoundingClientRect(); return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom); }
+    function showDialogue(text, options = []) {
+        gameState = 'DIALOGUE';
+        refs.dialogueText.textContent = text;
+        refs.dialogueOptions.innerHTML = '';
+        options.forEach(option => {
+            const button = document.createElement('button');
+            button.textContent = option.text;
+            button.onclick = () => { option.action(); };
+            refs.dialogueOptions.appendChild(button);
+        });
+        refs.dialogueBox.classList.remove('hidden');
+    }
+    function hideDialogue() {
+        refs.dialogueBox.classList.add('hidden');
+        if (gameState !== 'COMBAT' && gameState !== 'TRANSITION') gameState = 'IDLE';
+    }
+    function createEntity(className, id = null) { const div = document.createElement('div'); div.className = `entity ${className}`; if (id) div.id = id; refs.gameArea.appendChild(div); return div; }
+
+    // --- LÓGICA DE DIÁLOGO E HISTÓRIA ---
+    function interactWithGhostCat() {
+        if (gameState !== 'IDLE') return;
+        if (playerState.hasDefeatedGhostCat) {
+            showDialogue("Você retornou, nobre guerreiro. Sinto que minhas forças se recuperaram. Gostaria de testar suas habilidades em um combate amistoso novamente?", [
+                { text: "Aceitar desafio!", action: startCombat },
+                { text: "Agora não.", action: hideDialogue }
+            ]);
+        } else {
+            showDialogue("Sniff... Olá, pequeno... Eu também já fui um aventureiro. Amava doces, bolos, tudo que era açúcar... ignorei as proteínas, as vitaminas... Fiquei fraco. Quando o exército da Rainha Uva chegou... eu não tive forças para lutar. Agora, estou preso aqui...", [{ text: "Que história triste...", action: () => {
+                hideDialogue();
+                refs.proceedButton.classList.remove('hidden');
+            }}]);
+        }
+    }
+    function onProceedClick() {
+        if (gameState === 'COMBAT' || playerState.hasDefeatedGhostCat) return;
+        refs.proceedButton.classList.add('disabled');
+        gameState = 'TRANSITION';
+        setTimeout(triggerTheTwist, 500);
+    }
+    function triggerTheTwist() {
+        showDialogue( "Espere... O que é isso? Você tentou sair, mas não conseguiu... Sinto algo diferente em você... Um poder... Você pode... retornar? Desfazer seus erros? EU QUERO ESSE PODER!",
+            [{ text: "O QUÊ?!", action: () => {
+                hideDialogue();
+                refs.fadeOverlay.style.opacity = '1';
+                setTimeout(() => {
+                    refs.npc.classList.remove('initial');
+                    setTimeout(() => {
+                        refs.fadeOverlay.style.opacity = '0';
+                        startCombat();
+                    }, 500);
+                }, 1000);
+            }}]
+        );
+    }
+
+    // --- LÓGICA DE COMBATE ---
+    function startCombat() {
+        gameState = 'COMBAT';
+        hideDialogue();
+        refs.proceedButton.classList.add('hidden');
+        playerState.vulnerabilityStacks = 0;
+        refs.combatUI.vulnerability.classList.add('hidden');
+        activeProjectiles = [];
+        refs.npc.className = 'entity';
+        bossState = {
+            maxHealth: 500 + (playerState.attack * 15), health: 500 + (playerState.attack * 15),
+            isAlive: true, x: 336, y: 50, speed: 2.5,
+            attackCooldown: 0, minionSpawnTimer: 0,
+            attackPattern: ['top_paws', 'side_paws', 'minions', 'burst'],
+            isIntangible: false,
+            healthThresholds: [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+        };
+        refs.combatUI.player.classList.remove('hidden');
+        refs.combatUI.boss.classList.remove('hidden');
+        updateCombatUI();
+    }
+    function endCombat(playerWon) {
+        gameState = 'IDLE';
+        playerState.vulnerabilityStacks = 0;
+        refs.combatUI.vulnerability.classList.add('hidden');
+        combatEntities.forEach(e => e.el.remove()); combatEntities = [];
+        activeProjectiles.forEach(p => p.div.remove()); activeProjectiles = [];
+        document.querySelectorAll('.paw-attack, .minion-ghost, .ghost-projectile').forEach(e => e.remove());
+        refs.combatUI.boss.classList.add('hidden');
+        refs.npc.style.opacity = 1;
+        if (playerWon) {
+            const currentPeas = playerState.inventory.get('Ervilhas Fantasmas') || 0;
+            playerState.inventory.set('Ervilhas Fantasmas', currentPeas + 1);
+            playerState.hasGhostPeas = true;
+            if (!playerState.hasDefeatedGhostCat) {
+                playerState.hasDefeatedGhostCat = true;
+                showDialogue("Não... minha ganância... me consumiu de novo... Você... você é forte porque sua dieta é balanceada... Eu entendo agora. Por favor, aceite isto. É uma habilidade que aprendi no mundo dos espectros.", 
+                [{ text: "Receber Recompensa", action: () => showRewardDialogue() }]);
+            } else {
+                showDialogue("Impressionante como sempre! Sua força é uma inspiração. Sinto que nossa troca de golpes me fortaleceu. Tome, mais uma essência espectral para você.", 
+                [{ text: "Agradecer", action: () => showRewardDialogue() }]);
+            }
+        } else {
+             showDialogue("Você foi derrotado... Tente novamente quando estiver mais forte.", [{ text: "Recomeçar", action: () => window.location.reload() }]);
+        }
+        updateUI();
+    }
+    function showRewardDialogue() {
+        const peaCount = playerState.inventory.get('Ervilhas Fantasmas');
+        const duration = 4 + peaCount;
+        showDialogue(`Você recebeu: Ervilhas Fantasmas (${peaCount})\n\nSua habilidade de intangibilidade (Z) agora dura ${duration} segundos.`, [{ text: "Excelente!", action: () => {
+            hideDialogue();
+            refs.proceedButton.classList.remove('hidden');
+            refs.proceedButton.classList.remove('disabled');
+        }}]);
+    }
+    function triggerIntangiblePhase() {
+        if (bossState.isIntangible) return;
+        bossState.isIntangible = true;
+        refs.npc.style.opacity = 0.4;
+        bossState.minionSpawnTimer = Date.now() + 1000;
+        setTimeout(() => {
+            bossState.isIntangible = false;
+            refs.npc.style.opacity = 1;
+        }, 10000);
+    }
+    function updateCombatUI() {
+        const playerMaxHealth = playerState.baseHealth + playerState.bonusHealth;
+        refs.combatUI.playerHealth.style.width = playerMaxHealth > 0 ? `${(playerState.health / playerMaxHealth) * 100}%` : '0%';
+        refs.combatUI.playerShield.style.width = playerState.shield > 0 ? `${(playerState.shield / 100) * 100}%` : '0%';
+        refs.combatUI.bossHealth.style.width = bossState.health > 0 ? `${(bossState.health / bossState.maxHealth) * 100}%` : '0%';
+    }
+    function takeDamage(target, damage, sourceElement = null) {
+        if (gameState !== 'COMBAT') return;
+        if (target === 'player') {
+            if (playerState.isInvincible) return;
+            const totalDamage = damage + (playerState.vulnerabilityStacks * 10);
+            playerState.vulnerabilityStacks++;
+            refs.combatUI.vulnerability.classList.remove('hidden');
+            refs.combatUI.vulnerability.textContent = `Vulnerável! Próximo dano +${playerState.vulnerabilityStacks * 10}`;
+            playerState.tookDamageThisRoom = true;
+            let damageLeft = totalDamage;
+            const shieldDamage = Math.min(playerState.shield, damageLeft);
+            playerState.shield -= shieldDamage; 
+            damageLeft -= shieldDamage;
+            if (damageLeft > 0) playerState.baseHealth -= damageLeft;
+            if (playerState.health <= 0) { 
+                playerState.health = 0; 
+                endCombat(false); 
+            }
+        } else if (target === 'boss') {
+            if (bossState.isIntangible) return;
+            bossState.health -= damage;
+            if (bossState.healthThresholds.length > 0 && (bossState.health / bossState.maxHealth) < bossState.healthThresholds[0]) {
+                bossState.healthThresholds.shift();
+                triggerIntangiblePhase();
+            }
+            if (bossState.health <= 0) { 
+                bossState.health = 0; 
+                bossState.isAlive = false; 
+                endCombat(true); 
+            }
+        } else {
+            target.health -= damage;
+            if (target.health <= 0 && sourceElement) {
+                sourceElement.remove();
+                combatEntities = combatEntities.filter(e => e.el !== sourceElement);
+            }
+        }
+        updateCombatUI();
+        updateUI();
+    }
+
+    // --- HABILIDADE DO JOGADOR ---
+    function useGhostPeasAbility() {
+        if (!playerState.hasGhostPeas || abilityOnCooldown || playerState.isInvincible) return;
+        const peaCount = playerState.inventory.get('Ervilhas Fantasmas') || 1;
+        const duration = (4 + peaCount) * 1000;
+        playerState.isInvincible = true;
+        abilityOnCooldown = true;
+        refs.player.style.opacity = '0.5';
+        refs.combatUI.abilityCooldown.classList.remove('hidden');
+        setTimeout(() => {
+            playerState.isInvincible = false;
+            refs.player.style.opacity = '1';
+        }, duration);
+        setTimeout(() => {
+            abilityOnCooldown = false;
+            refs.combatUI.abilityCooldown.classList.add('hidden');
+        }, 20000);
+    }
+    
+    // --- LÓGICA DE TIRO ---
+    function createPlayerProjectile(dir, offsetY = 0) {
+        const perpDir = { x: -dir.y, y: dir.x }; 
+        const startX = playerState.x + 16 + (perpDir.x * offsetY);
+        const startY = playerState.y + 16 + (perpDir.y * offsetY);
+        
+        const projectileDiv = createEntity('player-projectile');
+        projectileDiv.style.left = `${startX}px`;
+        projectileDiv.style.top = `${startY}px`;
+
+        const p = {
+            div: projectileDiv, 
+            x: startX, y: startY,
+            speed: 8, dx: dir.x, dy: dir.y, damage: playerState.attack
+        };
+        activeProjectiles.push(p);
+    }
+    function moveAndCheckProjectiles() {
+        for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+            let p = activeProjectiles[i];
+            if (!p) continue;
+            p.x += p.dx * p.speed;
+            p.y += p.dy * p.speed;
+            if (p.x > 800 || p.x < 0 || p.y > 600 || p.y < 0) {
+                p.div.remove();
+                activeProjectiles.splice(i, 1);
+                continue;
+            }
+            p.div.style.left = p.x + 'px';
+            p.div.style.top = p.y + 'px';
+            if (checkCollision(p.div, refs.npc)) {
+                takeDamage('boss', p.damage);
+                p.div.remove();
+                activeProjectiles.splice(i, 1);
+                continue; 
+            }
+            for (const entity of combatEntities) {
+                if (entity.type === 'minion' && checkCollision(p.div, entity.el)) {
+                    takeDamage(entity, p.damage, entity.el);
+                    p.div.remove();
+                    activeProjectiles.splice(i, 1);
+                    break; 
+                }
+            }
+        }
+    }
+
+    // --- IA E ATAQUES DO CHEFE ---
+    function bossAI() {
+        if (!bossState.isAlive) return;
+        if (bossState.isIntangible) {
+            if (Date.now() > bossState.minionSpawnTimer) {
+                if (combatEntities.filter(e => e.type === 'minion').length < 20) {
+                     spawnMinion();
+                }
+                if (Math.random() < 0.5) {
+                    performTopPawAttack();
+                }
+                bossState.minionSpawnTimer = Date.now() + 750;
+            }
+        } else {
+            let moveDirection = 0;
+            const incomingProjectiles = document.querySelectorAll('.player-projectile');
+            let isDodging = false;
+            for(const p of incomingProjectiles) {
+                const pRect = p.getBoundingClientRect();
+                const npcRect = refs.npc.getBoundingClientRect();
+                const dangerZone = (npcRect.width / 2) + 30;
+                if (Math.abs((pRect.x + pRect.width/2) - (npcRect.x + npcRect.width/2)) < dangerZone && pRect.y < npcRect.bottom) {
+                    moveDirection = (pRect.x < npcRect.x) ? 1.5 : -1.5;
+                    isDodging = true;
+                    break; 
+                }
+            }
+            if (!isDodging) {
+                const dx = playerState.x - bossState.x;
+                if (Math.abs(dx) > 10) { moveDirection = Math.sign(dx); }
+            }
+            bossState.x += moveDirection * bossState.speed;
+            bossState.x = Math.max(0, Math.min(bossState.x, 800 - 128));
+            refs.npc.style.left = `${bossState.x}px`;
+            if (Date.now() > bossState.attackCooldown) {
+                const nextAttack = bossState.attackPattern[Math.floor(Math.random() * bossState.attackPattern.length)];
+                switch(nextAttack) {
+                    case 'top_paws': performTopPawAttack(); break;
+                    case 'side_paws': performSidePawAttack(); break;
+                    case 'minions': if(combatEntities.filter(e => e.type === 'minion').length < 5) {
+                        const spawnCount = Math.floor(Math.random() * 2) + 2;
+                        for (let i = 0; i < spawnCount; i++) setTimeout(() => spawnMinion(), i * 200);
+                    }
+                    break;
+                    case 'burst': performProjectileBurst(); break;
+                }
+                bossState.attackCooldown = Date.now() + 3000;
+            }
+        }
+    }
+    function performTopPawAttack() {
+        const safeSpotIndex = Math.floor(Math.random() * 5);
+        for (let i = 0; i < 5; i++) {
+            if (i === safeSpotIndex) continue;
+            const paw = document.createElement('div');
+            paw.className = 'paw-attack vertical';
+            paw.style.top = '-200px'; paw.style.left = `${100 + i * 120}px`;
+            refs.gameArea.appendChild(paw);
+            let startY = -200;
+            const anim = () => {
+                if (gameState !== 'COMBAT') { paw.remove(); return; }
+                startY += 4;
+                paw.style.top = `${startY}px`;
+                if(checkCollision(paw, refs.player)) {
+                    takeDamage('player', 25);
+                    paw.remove(); return;
+                }
+                if (startY > 600) { paw.remove(); } else { requestAnimationFrame(anim); }
+            };
+            anim();
+        }
+    }
+    function performSidePawAttack() {
+        const fromLeft = Math.random() > 0.5;
+        const paw = document.createElement('div');
+        paw.className = `paw-attack ${fromLeft ? 'left' : 'right'}`;
+        paw.style.top = `${playerState.y - 10}px`;
+        paw.style.left = fromLeft ? '-200px' : '850px';
+        refs.gameArea.appendChild(paw);
+        let startX = fromLeft ? -200 : 850;
+        const speed = 6;
+        const anim = () => {
+            if (gameState !== 'COMBAT') { paw.remove(); return; }
+            startX += fromLeft ? speed : -speed;
+            paw.style.left = `${startX}px`;
+            if (checkCollision(paw, refs.player)) {
+                takeDamage('player', 25);
+                paw.remove(); return;
+            }
+            if (startX > 900 || startX < -250) { paw.remove(); } else { requestAnimationFrame(anim); }
+        };
+        anim();
+    }
+    function spawnMinion() {
+        const minionEl = document.createElement('div');
+        minionEl.className = 'minion-ghost';
+        const minionState = {
+            el: minionEl, type: 'minion', health: 50, damage: 5,
+            x: Math.random() > 0.5 ? -50 : 850, y: Math.random() * 550, speed: 1.5
+        };
+        minionEl.style.left = `${minionState.x}px`; minionEl.style.top = `${minionState.y}px`;
+        refs.gameArea.appendChild(minionEl);
+        combatEntities.push(minionState);
+        const anim = () => {
+            if (gameState !== 'COMBAT' || minionState.health <= 0) { minionEl.remove(); return; }
+            const dx = playerState.x - minionState.x;
+            const dy = playerState.y - minionState.y;
+            const dist = Math.hypot(dx, dy);
+            minionState.x += (dx / dist) * minionState.speed;
+            minionState.y += (dy / dist) * minionState.speed;
+            minionEl.style.left = `${minionState.x}px`; minionEl.style.top = `${minionState.y}px`;
+            if (checkCollision(minionEl, refs.player)) {
+                takeDamage('player', minionState.damage);
+                minionState.health = 0;
+                minionEl.remove();
+                combatEntities = combatEntities.filter(e => e !== minionState);
+                return;
+            }
+            requestAnimationFrame(anim);
+        };
+        anim();
+    }
+    function performProjectileBurst() {
+        for(let i = 0; i < 6; i++) {
+            setTimeout(() => {
+                if (gameState !== 'COMBAT' || !bossState.isAlive || bossState.isIntangible) return;
+                createEnemyProjectile(bossState.x + 64, bossState.y + 64, playerState.x + 32, playerState.y + 32, 5, 'ghost-projectile');
+            }, i * 150);
+        }
+    }
+    function createEnemyProjectile(startX, startY, targetX, targetY, damage, className) {
+        const p = document.createElement('div');
+        p.className = 'projectile ' + className; p.style.left = `${startX}px`; p.style.top = `${startY}px`;
+        refs.gameArea.appendChild(p);
+        const angle = Math.atan2(targetY - startY, targetX - startX);
+        const speed = 6;
+        const vx = Math.cos(angle) * speed; const vy = Math.sin(angle) * speed;
+        function move() {
+            if (gameState !== 'COMBAT') { p.remove(); return; }
+            const currentX = parseFloat(p.style.left); const currentY = parseFloat(p.style.top);
+            p.style.left = `${currentX + vx}px`; p.style.top = `${currentY + vy}px`;
+            if (checkCollision(p, refs.player)) { takeDamage('player', damage); p.remove(); return; }
+            if (currentX < -20 || currentX > 820 || currentY < -20 || currentY > 620) { p.remove(); return; }
+            requestAnimationFrame(move);
+        }
+        move();
+    }
+    
+    // --- LOOP PRINCIPAL E EVENTOS ---
+    function gameLoop() {
+        if (gameState === 'IDLE' || gameState === 'COMBAT') {
+            let dx = 0, dy = 0;
+            if (keys.ArrowUp) dy--; if (keys.ArrowDown) dy++;
+            if (keys.ArrowLeft) dx--; if (keys.ArrowRight) dx++;
+            if (dx !== 0 || dy !== 0) {
+                 const length = Math.hypot(dx, dy);
+                 playerState.x += (dx / length) * playerState.speed;
+                 playerState.y += (dy / length) * playerState.speed;
+                 playerState.lastMoveDirection = { x: dx/length, y: dy/length };
+            }
+            playerState.x = Math.max(0, Math.min(playerState.x, 800 - 64));
+            playerState.y = Math.max(0, Math.min(playerState.y, 600 - 64));
+            refs.player.style.left = `${playerState.x}px`; refs.player.style.top = `${playerState.y}px`;
+        }
+        if (gameState === 'IDLE') {
+            const isCollidingWithCat = checkCollision(refs.player, refs.npc);
+            if (isCollidingWithCat && !isNearCat) {
+                isNearCat = true;
+                refs.npc.style.cursor = "pointer";
+            } else if (!isCollidingWithCat && isNearCat) {
+                isNearCat = false;
+                refs.npc.style.cursor = "default";
+            }
+        }
+        if (gameState === 'COMBAT') {
+            bossAI();
+            moveAndCheckProjectiles();
+        }
+        requestAnimationFrame(gameLoop);
+    }
+    
+    document.addEventListener('keydown', e => {
+        if (keys.hasOwnProperty(e.key)) { e.preventDefault(); keys[e.key] = true; }
+        if (e.code === 'Space' && gameState === 'COMBAT') {
+            e.preventDefault();
+            const dir = { x: 0, y: -1 };
+            if (playerState.hasDoubleShot) {
+                createPlayerProjectile(dir, 10); 
+                createPlayerProjectile(dir, -10);
+            } else {
+                createPlayerProjectile(dir);
+            }
+        }
+        if (e.key.toLowerCase() === 'z') { e.preventDefault(); useGhostPeasAbility(); }
+    });
+    window.addEventListener('keyup', e => { if (keys.hasOwnProperty(e.key)) { e.preventDefault(); keys[e.key] = false; } });
+    
+    // INICIALIZAÇÃO DA SALA
+    if (playerState.hasDefeatedGhostCat) {
+        refs.npc.className = 'entity';
+        refs.npc.style.top = '50px';
+        refs.npc.style.left = '336px';
+    } else {
+        refs.npc.className = 'entity initial';
+        refs.npc.style.top = '50px';
+        refs.npc.style.left = '352px';
+    }
+    refs.proceedButton.addEventListener('click', () => {
+        if (playerState.hasDefeatedGhostCat) {
+            savePlayerState(playerState);
+            window.location.href = 'jogosalas.html';
+        } else {
+            onProceedClick();
+        }
+    });
+    playerState.x = 368; playerState.y = 450;
+    refs.player.style.left = `${playerState.x}px`;
+    refs.player.style.top = `${playerState.y}px`;
+    refs.npc.addEventListener('click', interactWithGhostCat);
+
+    updateUI();
+    gameLoop();
+    </script>
+ </body>
+ </html>
